@@ -69,6 +69,29 @@ El diagrama de Lucidchart es la referencia visual. Las tablas previstas son:
 | `insignias` | Catálogo de distintivos. |
 | `insignias_usuario` | Distintivos obtenidos por cada perfil. |
 
+### Implementación inicial del esquema
+
+La migración `supabase/migrations/20261011000000_initial_schema_v1_1.sql`
+contiene el primer esquema SQL no destructivo: tablas, catálogos técnicos,
+claves foráneas, restricciones, índices, RLS y lógica protegida para puntos,
+votos y solución de comentarios. Debe aplicarse primero en un proyecto de
+desarrollo de Supabase; no incluye ni requiere secretos.
+
+`supabase/seed.sql` agrega únicamente sedes, unidades y canales ficticios de
+desarrollo, después de aplicar la migración. No crea usuarios de Auth ni datos
+personales reales.
+
+La migración `supabase/migrations/20261011100000_fix_vote_points_idempotency.sql`
+corrige la idempotencia de los puntos por voto para que un evento dependa del
+votante y el contenido, no del id del voto. Las pruebas de integridad y RLS
+están en `supabase/tests/integrity_and_rls_test.sql` y se ejecutan contra una
+instancia de desarrollo.
+
+Las credenciales se mantienen fuera del repositorio en archivos `.env` locales.
+El alias inicial creado para una cuenta de Auth es temporal y el cliente deberá
+reemplazarlo durante el onboarding. La explicación de permisos y decisiones
+pendientes está en `docs/decisions.md`.
+
 ### Reglas importantes del esquema
 
 - `maestra`: usar `UNIQUE (grupo, codigo)`, no unicidad individual de `grupo` ni de `codigo`.
@@ -241,3 +264,24 @@ Si se modifican migraciones, revisar que sean coherentes con el esquema y probar
 ## Estado del proyecto
 
 Este README describe el diseño y alcance previstos. No afirma que todas las funciones estén implementadas. Marcar como implementada una función solo después de comprobar el código y sus pruebas.
+
+### Implementación actual
+
+Implementado y comprobado con `flutter analyze` y `flutter test`:
+
+- Esquema SQL V1.1 en `supabase/migrations/` (tablas, constraints, RLS, puntos).
+- Autenticación con `supabase_flutter`: registro, inicio y cierre de sesión, y
+  restauración de sesión.
+- Perfiles y onboarding: alias, tipo de perfil y programa/sede opcionales,
+  sujetos a los catálogos permitidos.
+- Tema Flutter con los colores institucionales de `docs/design.md`.
+
+Pendiente:
+
+- Aplicar la migración de idempotencia de votos y ejecutar las pruebas SQL en
+  el proyecto de desarrollo.
+- Confirmar el mecanismo de confirmación de correo en Supabase Auth.
+- Base Flutter completa (navegación Inicio/Canales/IA/Perfil, feed, canales,
+  publicaciones, comentarios, votos, reportes), gamificación e IA.
+- Asignación de `app_metadata.app_role` desde backend y tipografía Plus Jakarta
+  Sans.

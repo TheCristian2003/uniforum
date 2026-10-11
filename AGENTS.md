@@ -275,3 +275,19 @@ Si no puedes ejecutar una prueba por falta de configuración/credenciales, indí
 11. Pruebas, datos demo, accesibilidad y documentación.
 
 No implementar todo de una sola vez. Trabajar por entregables pequeños y funcionales.
+
+
+## Diseño visual y Google Stitch
+
+- El diseño aprobado en Google Stitch es la referencia visual principal de la aplicación.
+- Antes de implementar o modificar una pantalla, consulta el diseño correspondiente y los recursos disponibles.
+- Si Stitch MCP está configurado, úsalo para recuperar las pantallas, los componentes y las reglas visuales.
+- Mantén un archivo `docs/design/DESIGN.md` con los colores, tipografías, espaciados, bordes, componentes y reglas del sistema visual.
+- Guarda las capturas de referencia en `docs/design/screenshots/`.
+- Implementa las vistas con Flutter y Dart. No conviertas el proyecto móvil en una aplicación React o HTML salvo que se solicite expresamente.
+- Reutiliza componentes y estilos para mantener la coherencia entre pantallas.
+- No inventes cambios visuales importantes cuando exista un diseño aprobado.
+- Si una pantalla necesaria no existe en Stitch, identifica la ausencia y propone una extensión coherente antes de implementarla.
+- Separa la presentación visual de la lógica de negocio, la autenticación y las consultas a Supabase.
+- Tras implementar cada pantalla, compárala con su referencia visual y corrige diferencias importantes.
+- No afirmes que la interfaz coincide con el diseño sin haberla comprobado.
