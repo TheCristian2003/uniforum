@@ -57,7 +57,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                   onAbrirIA: () => setState(() => _index = 2),
                 ),
                 CanalesScreen(perfil: widget.perfil),
-                const IaScreen(),
+                IaScreen(perfil: widget.perfil),
                 PerfilScreen(perfil: widget.perfil),
               ],
             ),

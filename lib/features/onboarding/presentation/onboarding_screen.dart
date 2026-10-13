@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/encabezado_auth.dart';
 import '../../../core/widgets/message_card.dart';
 import '../../../data/models/catalogo_item.dart';
 import '../../../data/models/perfil.dart';
@@ -84,118 +85,134 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final errorCarga = tipos.hasError || programas.hasError || sedes.hasError;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Completa tu perfil')),
-      body: SafeArea(
-        child: cargando
-            ? const Center(child: CircularProgressIndicator())
-            : errorCarga
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: MessageCard(
-                        texto:
-                            'No se pudieron cargar los catálogos. Revisa tu conexión e intenta de nuevo.',
-                      ),
-                    ),
-                  )
-                : Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                'Cuéntanos sobre ti',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w800),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Elige un alias y tu vínculo con la universidad.',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
-                                    ),
-                              ),
-                              const SizedBox(height: 24),
-                              TextFormField(
-                                controller: _aliasController,
-                                maxLength: 50,
-                                decoration: const InputDecoration(
-                                  labelText: 'Alias',
-                                  prefixIcon: Icon(Icons.alternate_email),
-                                  helperText: 'Entre 3 y 50 caracteres',
-                                ),
-                                validator: (value) {
-                                  final text = value?.trim() ?? '';
-                                  if (text.length < 3) {
-                                    return 'El alias debe tener al menos 3 caracteres';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 8),
-                              _DropdownCatalogo(
-                                label: 'Tipo de perfil',
-                                icono: Icons.badge_outlined,
-                                items: _filtrarTipos(tipos.value ?? []),
-                                valor: _tipoId,
-                                onChanged: (value) =>
-                                    setState(() => _tipoId = value),
-                                validator: (value) => value == null
-                                    ? 'Selecciona tu tipo de perfil'
-                                    : null,
-                              ),
-                              const SizedBox(height: 12),
-                              _DropdownCatalogo(
-                                label: 'Programa (opcional)',
-                                icono: Icons.school_outlined,
-                                items: programas.value ?? [],
-                                valor: _programaId,
-                                opcional: true,
-                                onChanged: (value) =>
-                                    setState(() => _programaId = value),
-                              ),
-                              const SizedBox(height: 12),
-                              _DropdownCatalogo(
-                                label: 'Sede (opcional)',
-                                icono: Icons.location_on_outlined,
-                                items: sedes.value ?? [],
-                                valor: _sedeId,
-                                opcional: true,
-                                onChanged: (value) =>
-                                    setState(() => _sedeId = value),
-                              ),
-                              if (_error != null) ...[
-                                const SizedBox(height: 12),
-                                MessageCard(texto: _error!),
-                              ],
-                              const SizedBox(height: 20),
-                              FilledButton(
-                                onPressed: _guardando ? null : _guardar,
-                                child: _guardando
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
-                                      )
-                                    : const Text('Guardar y continuar'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+      backgroundColor: AppColors.surface,
+      body: Column(
+        children: [
+          const EncabezadoAuth(
+            titulo: 'Completa tu perfil',
+            subtitulo: 'Cuéntanos sobre ti y tu vínculo con la universidad.',
+            icono: Icons.person_outline_rounded,
+          ),
+          Expanded(
+            child: _cuerpo(cargando, errorCarga, tipos.value ?? [],
+                programas.value ?? [], sedes.value ?? []),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cuerpo(
+    bool cargando,
+    bool errorCarga,
+    List<CatalogoItem> tipos,
+    List<CatalogoItem> programas,
+    List<CatalogoItem> sedes,
+  ) {
+    if (cargando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (errorCarga) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: MessageCard(
+            texto:
+                'No se pudieron cargar los catálogos. Revisa tu conexión e intenta de nuevo.',
+          ),
+        ),
+      );
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.outlineVariant),
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Elige tu alias y perfil',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _aliasController,
+                    maxLength: 50,
+                    decoration: const InputDecoration(
+                      labelText: 'Alias',
+                      prefixIcon: Icon(Icons.alternate_email),
+                      helperText: 'Entre 3 y 50 caracteres',
+                    ),
+                    validator: (value) {
+                      final text = value?.trim() ?? '';
+                      if (text.length < 3) {
+                        return 'El alias debe tener al menos 3 caracteres';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _DropdownCatalogo(
+                    label: 'Tipo de perfil',
+                    icono: Icons.badge_outlined,
+                    items: _filtrarTipos(tipos),
+                    valor: _tipoId,
+                    onChanged: (value) => setState(() => _tipoId = value),
+                    validator: (value) => value == null
+                        ? 'Selecciona tu tipo de perfil'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  _DropdownCatalogo(
+                    label: 'Programa (opcional)',
+                    icono: Icons.school_outlined,
+                    items: programas,
+                    valor: _programaId,
+                    opcional: true,
+                    onChanged: (value) => setState(() => _programaId = value),
+                  ),
+                  const SizedBox(height: 12),
+                  _DropdownCatalogo(
+                    label: 'Sede (opcional)',
+                    icono: Icons.location_on_outlined,
+                    items: sedes,
+                    valor: _sedeId,
+                    opcional: true,
+                    onChanged: (value) => setState(() => _sedeId = value),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    MessageCard(texto: _error!),
+                  ],
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    onPressed: _guardando ? null : _guardar,
+                    child: _guardando
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Guardar y continuar'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

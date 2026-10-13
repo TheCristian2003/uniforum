@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/encabezado_auth.dart';
 import '../../../core/widgets/message_card.dart';
 import 'auth_controller.dart';
 
@@ -53,119 +54,134 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear cuenta')),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Únete a la comunidad',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
+      backgroundColor: AppColors.surface,
+      body: Column(
+        children: [
+          EncabezadoAuth(
+            titulo: 'Crear cuenta',
+            subtitulo: 'Únete a la comunidad universitaria',
+            icono: Icons.person_add_alt_1_rounded,
+            onBack: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.outlineVariant),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Usa tu correo para registrarte.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.onSurfaceVariant,
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Usa tu correo para registrarte',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      decoration: const InputDecoration(
-                        labelText: 'Correo',
-                        prefixIcon: Icon(Icons.mail_outline),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            decoration: const InputDecoration(
+                              labelText: 'Correo',
+                              prefixIcon: Icon(Icons.mail_outline),
+                            ),
+                            validator: (value) {
+                              final text = value?.trim() ?? '';
+                              if (text.isEmpty) return 'Ingresa tu correo';
+                              final emailRegex =
+                                  RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                              if (!emailRegex.hasMatch(text)) {
+                                return 'Correo no válido';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscure,
+                            autofillHints: const [AutofillHints.newPassword],
+                            decoration: InputDecoration(
+                              labelText: 'Contraseña',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscure
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Ingresa una contraseña';
+                              }
+                              if (value.length < 6) {
+                                return 'Debe tener al menos 6 caracteres';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _confirmController,
+                            obscureText: _obscure,
+                            decoration: const InputDecoration(
+                              labelText: 'Confirmar contraseña',
+                              prefixIcon: Icon(Icons.lock_outline),
+                            ),
+                            validator: (value) =>
+                                value != _passwordController.text
+                                    ? 'Las contraseñas no coinciden'
+                                    : null,
+                          ),
+                          if (authState.status == AuthStatus.error &&
+                              authState.message != null) ...[
+                            const SizedBox(height: 12),
+                            MessageCard(texto: authState.message!),
+                          ],
+                          if (_confirmado) ...[
+                            const SizedBox(height: 12),
+                            const MessageCard(
+                              texto:
+                                  'Cuenta creada. Confirma tu correo antes de iniciar sesión.',
+                              tipo: MessageCardTipo.info,
+                            ),
+                          ],
+                          const SizedBox(height: 20),
+                          FilledButton(
+                            onPressed: authState.isLoading ? null : _submit,
+                            child: authState.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Crear cuenta'),
+                          ),
+                        ],
                       ),
-                      validator: (value) {
-                        final text = value?.trim() ?? '';
-                        if (text.isEmpty) return 'Ingresa tu correo';
-                        final emailRegex =
-                            RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-                        if (!emailRegex.hasMatch(text)) {
-                          return 'Correo no válido';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscure,
-                      autofillHints: const [AutofillHints.newPassword],
-                      decoration: InputDecoration(
-                        labelText: 'Contraseña',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingresa una contraseña';
-                        }
-                        if (value.length < 6) {
-                          return 'Debe tener al menos 6 caracteres';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _confirmController,
-                      obscureText: _obscure,
-                      decoration: const InputDecoration(
-                        labelText: 'Confirmar contraseña',
-                        prefixIcon: Icon(Icons.lock_outline),
-                      ),
-                      validator: (value) => value != _passwordController.text
-                          ? 'Las contraseñas no coinciden'
-                          : null,
-                    ),
-                    if (authState.status == AuthStatus.error &&
-                        authState.message != null) ...[
-                      const SizedBox(height: 12),
-                      MessageCard(texto: authState.message!),
-                    ],
-                    if (_confirmado) ...[
-                      const SizedBox(height: 12),
-                      const MessageCard(
-                        texto:
-                            'Cuenta creada. Confirma tu correo antes de iniciar sesión.',
-                        tipo: MessageCardTipo.info,
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: authState.isLoading ? null : _submit,
-                      child: authState.isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Crear cuenta'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

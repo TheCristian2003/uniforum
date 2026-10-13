@@ -1,21 +1,584 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/estado_view.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../data/models/perfil.dart';
+import '../../shell/presentation/widgets/cabecera_perfil.dart';
 
-/// Pestaña de la IA del Campus. La integración con la Edge Function se
-/// implementa en la etapa de IA.
-class IaScreen extends StatelessWidget {
-  const IaScreen({super.key});
+/// Pestaña de la IA del Campus. Por ahora es solo la experiencia visual:
+/// la integración con la Edge Function se conecta en la etapa de IA.
+class IaScreen extends StatefulWidget {
+  const IaScreen({super.key, required this.perfil});
+
+  final Perfil perfil;
+
+  @override
+  State<IaScreen> createState() => _IaScreenState();
+}
+
+class _IaScreenState extends State<IaScreen> {
+  final _entrada = TextEditingController();
+  final _foco = FocusNode();
+
+  @override
+  void dispose() {
+    _entrada.dispose();
+    _foco.dispose();
+    super.dispose();
+  }
+
+  void _usarSugerencia(String texto) {
+    _entrada.text = texto;
+    _entrada.selection = TextSelection.collapsed(offset: texto.length);
+    _foco.requestFocus();
+  }
+
+  void _enviar() {
+    FocusScope.of(context).unfocus();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('La IA del Campus estará disponible muy pronto.'),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('IA del Campus')),
-      body: const EmptyView(
-        icono: Icons.auto_awesome,
-        titulo: 'IA del Campus en camino',
-        mensaje:
-            'Podrás preguntar por el contenido del campus y resumir lo que te perdiste.',
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        toolbarHeight: 68,
+        titleSpacing: 16,
+        backgroundColor: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        title: CabeceraPerfil(perfil: widget.perfil, saludo: false),
+        actions: [
+          BotonCabecera(icono: Icons.history, onTap: () {}),
+          const SizedBox(width: 6),
+          BotonCabecera(
+            icono: Icons.notifications_none,
+            badge: '3',
+            onTap: () {},
+          ),
+          const SizedBox(width: 16),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: AppColors.ugYellow.withValues(alpha: 0.25),
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(top: 16, bottom: 16),
+              children: [
+                _margen(
+                  _HeroIA(
+                    alias: widget.perfil.alias,
+                    onSugerencia: _usarSugerencia,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _margen(const _EncabezadoConversacion()),
+                const SizedBox(height: 12),
+                _margen(const _Bienvenida()),
+              ],
+            ),
+          ),
+          _ConsolaIA(
+            controller: _entrada,
+            focus: _foco,
+            onEnviar: _enviar,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _margen(Widget child) =>
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: child);
+}
+
+/// Tarjeta superior con el orbe de la IA, pregunta de bienvenida y
+/// acciones rápidas sugeridas.
+class _HeroIA extends StatelessWidget {
+  const _HeroIA({required this.alias, required this.onSugerencia});
+
+  final String alias;
+  final ValueChanged<String> onSugerencia;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceContainerLowest,
+              AppColors.surfaceContainerLow,
+              AppColors.ugOcreLight,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.ugYellow.withValues(alpha: 0.4)),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -40,
+              right: -40,
+              child: _orbe(150, AppColors.ugYellow.withValues(alpha: 0.22)),
+            ),
+            Positioned(
+              bottom: -50,
+              left: -40,
+              child: _orbe(130, AppColors.ugBlue.withValues(alpha: 0.12)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const _OrbeIA(),
+                      const SizedBox(width: 12),
+                      const Expanded(child: _EstadoIA()),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '¿En qué te puedo ayudar hoy, $alias?',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Pregúntame por las publicaciones, avisos, eventos y '
+                    'objetos perdidos de tus canales.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'ACCIONES RÁPIDAS SUGERIDAS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.6,
+                      color: AppColors.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _Sugerencias(onSugerencia: onSugerencia),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _orbe(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withValues(alpha: 0)],
+        ),
+      ),
+    );
+  }
+}
+
+/// Orbe animado con el ícono de la IA y un punto rojo de actividad.
+class _OrbeIA extends StatelessWidget {
+  const _OrbeIA();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 54,
+      height: 54,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.ugYellow, AppColors.ugYellowDark],
+              ),
+            ),
+            child: const Center(
+              child: Icon(Icons.auto_awesome, color: Colors.white, size: 26),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                color: AppColors.ugRed,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.surfaceContainerLowest,
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Píldora de estado "IA del Campus · En línea".
+class _EstadoIA extends StatelessWidget {
+  const _EstadoIA({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.ugOcreLight,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppColors.ugYellow.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: const BoxDecoration(
+                color: Color(0xFF059669),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Flexible(
+              child: Text(
+                'IA del Campus · En línea',
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ugYellowDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Sugerencia {
+  const _Sugerencia(this.texto, this.icono, this.color);
+
+  final String texto;
+  final IconData icono;
+  final Color color;
+}
+
+class _Sugerencias extends StatelessWidget {
+  const _Sugerencias({required this.onSugerencia});
+
+  final ValueChanged<String> onSugerencia;
+
+  static const _items = [
+    _Sugerencia('¿Qué me perdí esta semana?', Icons.bolt, AppColors.ugRed),
+    _Sugerencia('Resumen de un canal', Icons.topic_outlined, AppColors.ugBlue),
+    _Sugerencia('Buscar un tema', Icons.manage_search, AppColors.ugBlue),
+    _Sugerencia(
+      'Avisos importantes',
+      Icons.campaign_outlined,
+      AppColors.ugRed,
+    ),
+    _Sugerencia(
+      'Objetos perdidos',
+      Icons.search_off_outlined,
+      AppColors.ugYellowDark,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final item in _items)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _ChipSugerencia(
+                item: item,
+                onTap: () => onSugerencia(item.texto),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChipSugerencia extends StatelessWidget {
+  const _ChipSugerencia({required this.item, required this.onTap});
+
+  final _Sugerencia item;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: AppColors.ugYellow.withValues(alpha: 0.4),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(item.icono, size: 15, color: item.color),
+              const SizedBox(width: 6),
+              Text(
+                item.texto,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EncabezadoConversacion extends StatelessWidget {
+  const _EncabezadoConversacion();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.forum_outlined, size: 20, color: AppColors.onSurface),
+        const SizedBox(width: 8),
+        const Text(
+          'Conversación',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.ugYellow.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: const Text(
+            'Nueva',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ugYellowDark,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Estado vacío de la conversación: aún no hay mensajes.
+class _Bienvenida extends StatelessWidget {
+  const _Bienvenida();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.ugOcreLight,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 30,
+              color: AppColors.ugYellowDark,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Empieza una conversación',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Escribe tu pregunta o toca una acción rápida. Aquí verás mis '
+            'respuestas junto con las publicaciones que las respaldan.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Consola de entrada inferior con adjuntar, voz y envío.
+class _ConsolaIA extends StatelessWidget {
+  const _ConsolaIA({
+    required this.controller,
+    required this.focus,
+    required this.onEnviar,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focus;
+  final VoidCallback onEnviar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        border: Border(top: BorderSide(color: AppColors.outlineVariant)),
+      ),
+      child: Row(
+        children: [
+          _botonIcono(Icons.attach_file, 'Adjuntar'),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: TextField(
+                controller: controller,
+                focusNode: focus,
+                minLines: 1,
+                maxLines: 5,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => onEnviar(),
+                decoration: const InputDecoration(
+                  hintText: 'Pregunta sobre clases, canales o trámites…',
+                  hintStyle: TextStyle(color: AppColors.outline, fontSize: 14),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          _botonIcono(Icons.mic_none, 'Dictar por voz'),
+          const SizedBox(width: 6),
+          _BotonEnviar(onTap: onEnviar),
+        ],
+      ),
+    );
+  }
+
+  Widget _botonIcono(IconData icono, String tooltip) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: () {},
+        customBorder: const CircleBorder(),
+        child: Tooltip(
+          message: tooltip,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icono, size: 22, color: AppColors.onSurfaceVariant),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BotonEnviar extends StatelessWidget {
+  const _BotonEnviar({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.ugRed,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: const SizedBox(
+          width: 46,
+          height: 46,
+          child: Icon(Icons.send, color: Colors.white, size: 20),
+        ),
       ),
     );
   }

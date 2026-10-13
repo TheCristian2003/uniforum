@@ -126,6 +126,51 @@ class _MiniaturaUrl extends StatelessWidget {
   }
 }
 
+/// Tarjeta blanca que agrupa un bloque del formulario con su encabezado.
+class _Seccion extends StatelessWidget {
+  const _Seccion({
+    required this.titulo,
+    required this.icono,
+    required this.children,
+  });
+
+  final String titulo;
+  final IconData icono;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icono, size: 18, color: AppColors.ugBlue),
+              const SizedBox(width: 8),
+              Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
 class CrearPublicacionScreen extends ConsumerStatefulWidget {
   const CrearPublicacionScreen({super.key, this.publicacion});
 
@@ -401,12 +446,24 @@ class _CrearPublicacionScreenState
     final puedeAnadir = totalImgs < 3;
 
     return Scaffold(
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
         title: Text(_editando ? 'Editar publicación' : 'Nueva publicación'),
+        backgroundColor: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: AppColors.ugYellow.withValues(alpha: 0.25),
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -416,290 +473,363 @@ class _CrearPublicacionScreenState
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceContainer,
+                      color: AppColors.ugBlueLight,
                       borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'No se puede cambiar el canal, tipo ni categoría.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.onSurfaceVariant,
+                      border: Border.all(
+                        color: AppColors.ugBlue.withValues(alpha: 0.25),
                       ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.lock_outline,
+                          size: 18,
+                          color: AppColors.ugBlue,
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'No se puede cambiar el canal, tipo ni categoría.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.ugBlue,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
                 ],
-                DropdownButtonFormField<String>(
-                  value: _canalId,
-                  decoration: const InputDecoration(
-                    labelText: 'Canal',
-                    prefixIcon: Icon(Icons.forum_outlined),
-                  ),
-                  items: canalesAsync.when(
-                    data: (canales) => canales
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c.id,
-                            child: Text(c.nombre),
-                          ),
-                        )
-                        .toList(),
-                    loading: () => [],
-                    error: (_, __) => [],
-                  ),
-                  onChanged: _editando ? null : (v) => setState(() => _canalId = v),
-                  validator: (v) =>
-                      v == null ? 'Selecciona un canal' : null,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  value: _tipoId,
-                  decoration: const InputDecoration(
-                    labelText: 'Tipo',
-                    prefixIcon: Icon(Icons.category_outlined),
-                  ),
-                  items: tiposAsync.when(
-                    data: (_) => tiposFiltrados
-                        .map(
-                          (t) => DropdownMenuItem(
-                            value: t.id,
-                            child: Text(t.nombre),
-                          ),
-                        )
-                        .toList(),
-                    loading: () => [],
-                    error: (_, __) => [],
-                  ),
-                  onChanged: _editando
-                      ? null
-                      : (v) {
-                          setState(() => _tipoId = v);
-                          if (tipoSel?.codigo != 'venta') {
-                            _disponible = true;
-                          }
-                        },
-                  validator: (v) =>
-                      v == null ? 'Selecciona un tipo' : null,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  value: _categoriaId,
-                  decoration: const InputDecoration(
-                    labelText: 'Categoría',
-                    prefixIcon: Icon(Icons.label_outline),
-                  ),
-                  items: categoriasAsync.when(
-                    data: (cats) => cats
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c.id,
-                            child: Text(c.nombre),
-                          ),
-                        )
-                        .toList(),
-                    loading: () => [],
-                    error: (_, __) => [],
-                  ),
-                  onChanged: _editando ? null : (v) => setState(() => _categoriaId = v),
-                  validator: (v) =>
-                      v == null ? 'Selecciona una categoría' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _tituloController,
-                  decoration: const InputDecoration(
-                    labelText: 'Título (opcional)',
-                    prefixIcon: Icon(Icons.title_outlined),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _cuerpoController,
-                  minLines: 4,
-                  maxLines: 8,
-                  decoration: const InputDecoration(
-                    labelText: 'Contenido',
-                    alignLabelWithHint: true,
-                  ),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Escribe el contenido de tu publicación'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                Row(
+                _Seccion(
+                  titulo: 'Clasificación',
+                  icono: Icons.tune,
                   children: [
-                    Checkbox(
-                      value: _anonimo,
-                      onChanged: (v) => setState(() => _anonimo = v ?? false),
+                    DropdownButtonFormField<String>(
+                      value: _canalId,
+                      decoration: const InputDecoration(
+                        labelText: 'Canal',
+                        prefixIcon: Icon(Icons.forum_outlined),
+                      ),
+                      items: canalesAsync.when(
+                        data: (canales) => canales
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c.id,
+                                child: Text(c.nombre),
+                              ),
+                            )
+                            .toList(),
+                        loading: () => [],
+                        error: (_, _) => [],
+                      ),
+                      onChanged: _editando
+                          ? null
+                          : (v) => setState(() => _canalId = v),
+                      validator: (v) =>
+                          v == null ? 'Selecciona un canal' : null,
                     ),
-                    const Text('Publicar como anónimo'),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text('Imágenes (máx. 3)', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final url in _existentes)
-                      _MiniaturaUrl(
-                        url: url,
-                        onQuitar: () => setState(() => _existentes.remove(url)),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      value: _tipoId,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo',
+                        prefixIcon: Icon(Icons.category_outlined),
                       ),
-                    for (final img in _nuevas)
-                      _MiniaturaBytes(
-                        bytes: img.bytes,
-                        onQuitar: () => setState(() => _nuevas.remove(img)),
+                      items: tiposAsync.when(
+                        data: (_) => tiposFiltrados
+                            .map(
+                              (t) => DropdownMenuItem(
+                                value: t.id,
+                                child: Text(t.nombre),
+                              ),
+                            )
+                            .toList(),
+                        loading: () => [],
+                        error: (_, _) => [],
                       ),
-                    if (puedeAnadir)
-                      ActionChip(
-                        avatar: const Icon(Icons.add_photo_alternate_outlined),
-                        label: const Text('Añadir imagen'),
-                        onPressed: _elegirImagenes,
+                      onChanged: _editando
+                          ? null
+                          : (v) {
+                              setState(() => _tipoId = v);
+                              if (tipoSel?.codigo != 'venta') {
+                                _disponible = true;
+                              }
+                            },
+                      validator: (v) =>
+                          v == null ? 'Selecciona un tipo' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      value: _categoriaId,
+                      decoration: const InputDecoration(
+                        labelText: 'Categoría',
+                        prefixIcon: Icon(Icons.label_outline),
                       ),
+                      items: categoriasAsync.when(
+                        data: (cats) => cats
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c.id,
+                                child: Text(c.nombre),
+                              ),
+                            )
+                            .toList(),
+                        loading: () => [],
+                        error: (_, _) => [],
+                      ),
+                      onChanged: _editando
+                          ? null
+                          : (v) => setState(() => _categoriaId = v),
+                      validator: (v) =>
+                          v == null ? 'Selecciona una categoría' : null,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
+                _Seccion(
+                  titulo: 'Tu publicación',
+                  icono: Icons.edit_note,
+                  children: [
+                    TextFormField(
+                      controller: _tituloController,
+                      decoration: const InputDecoration(
+                        labelText: 'Título (opcional)',
+                        prefixIcon: Icon(Icons.title_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _cuerpoController,
+                      minLines: 4,
+                      maxLines: 8,
+                      decoration: const InputDecoration(
+                        labelText: 'Contenido',
+                        alignLabelWithHint: true,
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Escribe el contenido de tu publicación'
+                          : null,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _anonimo,
+                          onChanged: (v) =>
+                              setState(() => _anonimo = v ?? false),
+                        ),
+                        const Expanded(child: Text('Publicar como anónimo')),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _Seccion(
+                  titulo: 'Imágenes (máx. 3)',
+                  icono: Icons.photo_library_outlined,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final url in _existentes)
+                          _MiniaturaUrl(
+                            url: url,
+                            onQuitar: () =>
+                                setState(() => _existentes.remove(url)),
+                          ),
+                        for (final img in _nuevas)
+                          _MiniaturaBytes(
+                            bytes: img.bytes,
+                            onQuitar: () => setState(() => _nuevas.remove(img)),
+                          ),
+                        if (puedeAnadir)
+                          ActionChip(
+                            avatar: const Icon(
+                              Icons.add_photo_alternate_outlined,
+                            ),
+                            label: const Text('Añadir imagen'),
+                            onPressed: _elegirImagenes,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
                 if (tipoSel?.codigo == 'venta') ...[
-                  TextFormField(
-                    controller: _precioController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Precio (COP)',
-                      prefixIcon: Icon(Icons.attach_money_outlined),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa un valor'
-                        : (double.tryParse(v.replaceAll(',', '.')) == null
-                              ? 'Valor inválido'
-                              : null),
+                  const SizedBox(height: 16),
+                  _Seccion(
+                    titulo: 'Datos de la venta',
+                    icono: Icons.sell_outlined,
+                    children: [
+                      TextFormField(
+                        controller: _precioController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Precio (COP)',
+                          prefixIcon: Icon(Icons.attach_money_outlined),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Ingresa un valor'
+                            : (double.tryParse(v.replaceAll(',', '.')) == null
+                                  ? 'Valor inválido'
+                                  : null),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _lugarController,
+                        decoration: const InputDecoration(
+                          labelText: 'Lugar (opcional)',
+                          prefixIcon: Icon(Icons.place_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_editando)
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Disponible'),
+                          value: _disponible,
+                          onChanged: (v) => setState(() => _disponible = v),
+                        )
+                      else
+                        const Text(
+                          'El estado se establecerá como disponible al crear la publicación.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _lugarController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lugar (opcional)',
-                      prefixIcon: Icon(Icons.place_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_editando) ...[
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Disponible'),
-                      value: _disponible,
-                      onChanged: (v) => setState(() => _disponible = v),
-                    ),
-                  ] else ...[
-                    const Text(
-                      'El estado se establecerá como disponible al crear la publicación.',
-                      style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
-                    ),
-                  ],
                 ],
                 if (tipoSel?.codigo == 'perdido') ...[
-                  _SelectorFechaFormField(
-                    label: 'Fecha del incidente',
-                    valor: _fecha,
-                    onSeleccionar: () => _seleccionarFecha(),
-                    validator: (v) => v == null ? 'Selecciona la fecha' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _lugarController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lugar',
-                      prefixIcon: Icon(Icons.place_outlined),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa el lugar'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _recompensaController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Recompensa (COP, opcional)',
-                      prefixIcon: Icon(Icons.attach_money_outlined),
-                    ),
+                  const SizedBox(height: 16),
+                  _Seccion(
+                    titulo: 'Datos del objeto perdido',
+                    icono: Icons.search_off_outlined,
+                    children: [
+                      _SelectorFechaFormField(
+                        label: 'Fecha del incidente',
+                        valor: _fecha,
+                        onSeleccionar: () => _seleccionarFecha(),
+                        validator: (v) =>
+                            v == null ? 'Selecciona la fecha' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _lugarController,
+                        decoration: const InputDecoration(
+                          labelText: 'Lugar',
+                          prefixIcon: Icon(Icons.place_outlined),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Ingresa el lugar'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _recompensaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Recompensa (COP, opcional)',
+                          prefixIcon: Icon(Icons.attach_money_outlined),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
                 if (tipoSel?.codigo == 'encontrado') ...[
-                  _SelectorFechaFormField(
-                    label: 'Fecha del hallazgo',
-                    valor: _fecha,
-                    onSeleccionar: () => _seleccionarFecha(),
-                    validator: (v) => v == null ? 'Selecciona la fecha' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _lugarController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lugar',
-                      prefixIcon: Icon(Icons.place_outlined),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa el lugar'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Entregado'),
-                    value: _entregado,
-                    onChanged: (v) => setState(() => _entregado = v),
+                  const SizedBox(height: 16),
+                  _Seccion(
+                    titulo: 'Datos del hallazgo',
+                    icono: Icons.handshake_outlined,
+                    children: [
+                      _SelectorFechaFormField(
+                        label: 'Fecha del hallazgo',
+                        valor: _fecha,
+                        onSeleccionar: () => _seleccionarFecha(),
+                        validator: (v) =>
+                            v == null ? 'Selecciona la fecha' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _lugarController,
+                        decoration: const InputDecoration(
+                          labelText: 'Lugar',
+                          prefixIcon: Icon(Icons.place_outlined),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Ingresa el lugar'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Entregado'),
+                        value: _entregado,
+                        onChanged: (v) => setState(() => _entregado = v),
+                      ),
+                    ],
                   ),
                 ],
                 if (tipoSel?.codigo == 'evento') ...[
-                  _SelectorFechaFormField(
-                    label: 'Inicio',
-                    valor: _inicio,
-                    onSeleccionar: () => _seleccionarFecha(conHora: true),
-                    conHora: true,
-                    validator: (v) => v == null ? 'Selecciona el inicio' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  _SelectorFechaFormField(
-                    label: 'Fin (opcional)',
-                    valor: _fin,
-                    onSeleccionar: () => _seleccionarFecha(conHora: true),
-                    conHora: true,
-                    validator: (v) {
-                      if (v != null && _inicio != null && v.isBefore(_inicio!)) {
-                        return 'El fin debe ser posterior al inicio';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _lugarController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lugar',
-                      prefixIcon: Icon(Icons.place_outlined),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa el lugar'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _enlaceController,
-                    decoration: const InputDecoration(
-                      labelText: 'Enlace (opcional)',
-                      prefixIcon: Icon(Icons.link_outlined),
-                    ),
-                    validator: (v) {
-                      final enlace = v?.trim() ?? '';
-                      if (enlace.isEmpty) return null;
-                      final uri = Uri.tryParse(enlace);
-                      if (uri == null || !uri.isAbsolute) {
-                        return 'Enlace inválido';
-                      }
-                      return null;
-                    },
+                  const SizedBox(height: 16),
+                  _Seccion(
+                    titulo: 'Datos del evento',
+                    icono: Icons.event_outlined,
+                    children: [
+                      _SelectorFechaFormField(
+                        label: 'Inicio',
+                        valor: _inicio,
+                        onSeleccionar: () => _seleccionarFecha(conHora: true),
+                        conHora: true,
+                        validator: (v) =>
+                            v == null ? 'Selecciona el inicio' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      _SelectorFechaFormField(
+                        label: 'Fin (opcional)',
+                        valor: _fin,
+                        onSeleccionar: () => _seleccionarFecha(conHora: true),
+                        conHora: true,
+                        validator: (v) {
+                          if (v != null &&
+                              _inicio != null &&
+                              v.isBefore(_inicio!)) {
+                            return 'El fin debe ser posterior al inicio';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _lugarController,
+                        decoration: const InputDecoration(
+                          labelText: 'Lugar',
+                          prefixIcon: Icon(Icons.place_outlined),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Ingresa el lugar'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _enlaceController,
+                        decoration: const InputDecoration(
+                          labelText: 'Enlace (opcional)',
+                          prefixIcon: Icon(Icons.link_outlined),
+                        ),
+                        validator: (v) {
+                          final enlace = v?.trim() ?? '';
+                          if (enlace.isEmpty) return null;
+                          final uri = Uri.tryParse(enlace);
+                          if (uri == null || !uri.isAbsolute) {
+                            return 'Enlace inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ],
                 const SizedBox(height: 24),
