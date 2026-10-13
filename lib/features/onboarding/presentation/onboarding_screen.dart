@@ -160,6 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 icono: Icons.school_outlined,
                                 items: programas.value ?? [],
                                 valor: _programaId,
+                                opcional: true,
                                 onChanged: (value) =>
                                     setState(() => _programaId = value),
                               ),
@@ -169,6 +170,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 icono: Icons.location_on_outlined,
                                 items: sedes.value ?? [],
                                 valor: _sedeId,
+                                opcional: true,
                                 onChanged: (value) =>
                                     setState(() => _sedeId = value),
                               ),
@@ -213,6 +215,7 @@ class _DropdownCatalogo extends StatelessWidget {
     required this.valor,
     required this.onChanged,
     this.validator,
+    this.opcional = false,
   });
 
   final String label;
@@ -221,6 +224,9 @@ class _DropdownCatalogo extends StatelessWidget {
   final int? valor;
   final ValueChanged<int?> onChanged;
   final FormFieldValidator<int?>? validator;
+
+  /// Cuando es `true`, agrega una opción para dejar el campo sin asignar.
+  final bool opcional;
 
   @override
   Widget build(BuildContext context) {
@@ -231,14 +237,22 @@ class _DropdownCatalogo extends StatelessWidget {
         labelText: label,
         prefixIcon: Icon(icono),
       ),
-      items: items
-          .map(
-            (item) => DropdownMenuItem<int>(
-              value: item.id,
-              child: Text(item.nombre, overflow: TextOverflow.ellipsis),
+      items: [
+        if (opcional)
+          const DropdownMenuItem<int>(
+            value: null,
+            child: Text(
+              'Ninguna',
+              style: TextStyle(color: AppColors.onSurfaceVariant),
             ),
-          )
-          .toList(),
+          ),
+        ...items.map(
+          (item) => DropdownMenuItem<int>(
+            value: item.id,
+            child: Text(item.nombre, overflow: TextOverflow.ellipsis),
+          ),
+        ),
+      ],
       onChanged: onChanged,
       validator: validator,
     );

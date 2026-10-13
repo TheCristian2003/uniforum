@@ -36,8 +36,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               password: _passwordController.text,
             );
     if (!mounted) return;
+    if (sessionActive) {
+      // La sesión ya está activa: volvemos a la raíz para que el AuthGate
+      // decida la siguiente pantalla (onboarding o inicio).
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
     final message = ref.read(authControllerProvider).message;
-    if (!sessionActive && message != null) {
+    if (message != null) {
       setState(() => _confirmado = true);
     }
   }

@@ -2,8 +2,10 @@
 
 ## Estado al 11 de octubre de 2026
 
-El proyecto remoto ya fue creado manualmente. La conexión está activa y la
-migración y el seed ya se ejecutaron contra la base de datos remota.
+Existen dos proyectos en la misma organización (el plan gratuito permite dos y
+no incluye ramas): uno de **desarrollo** y uno de **producción**. Todo el
+trabajo del MVP (migraciones, pruebas y correcciones) se hizo en el de
+**desarrollo**; el de producción quedó sin usar.
 
 ## Acciones realizadas
 
@@ -37,19 +39,24 @@ migración y el seed ya se ejecutaron contra la base de datos remota.
 14. Se creó `.env` local con la URL y la clave pública publishable. El archivo
     está ignorado por Git y no contiene una service-role key.
 
-## Siguiente paso requerido
+## Entornos
 
-La configuración remota actual es:
+Organización `TheCristian2003's Org`, región `us-east-1`, PostgreSQL 17.11.
 
-- organización: `TheCristian2003's Org`;
-- nombre provisional: `univibe`;
-- región: `us-east-1` (región elegida al crear el proyecto).
-- URL: `https://luxxhxjibycyuojqzryf.supabase.co`;
-- estado: `ACTIVE_HEALTHY`;
-- PostgreSQL: 17.11.
+- **Desarrollo** (referencia `nreglugsyicwbaquexcp`)
+  - URL: `https://nreglugsyicwbaquexcp.supabase.co`
+  - Estado: esquema canónico aplicado (las cinco migraciones) y pruebas en
+    verde. El seed demo (`supabase/seed.sql`) se ejecuta aquí.
+  - `.env` local apunta a este proyecto. Todas las pruebas se hacen aquí.
+- **Producción** (referencia `luxxhxjibycyuojqzryf`)
+  - URL: `https://luxxhxjibycyuojqzryf.supabase.co`
+  - Estado: congelado durante el MVP. Conserva un esquema antiguo con errores
+    (RLS sin políticas, sin `UNIQUE (grupo, codigo)`), pero sin datos reales.
+  - No aplicar nada hasta un release; entonces reconstruir con las migraciones
+    canónicas (nunca con el reset destructivo usado para reparar dev).
 
-La contraseña de base de datos se mantiene únicamente en Supabase y nunca se
-escribe en este archivo ni en Git.
+La contraseña de base de datos y las claves se mantienen únicamente en Supabase,
+fuera de este archivo y de Git.
 
 No enviar aquí contraseñas, service-role keys ni tokens de acceso.
 
@@ -62,7 +69,8 @@ No enviar aquí contraseñas, service-role keys ni tokens de acceso.
    remoto con usuarios reales de desarrollo.)_
 3. Verificar las diez tablas, claves foráneas, `CHECK`, índices parciales y
    RLS con pruebas de usuario autenticado, propietario y rol privilegiado.
-   _(Preparadas en `supabase/tests/integrity_and_rls_test.sql`; no ejecutadas.)_
+   _(Hecho: `supabase/tests/integrity_and_rls_test.sql` ejecutado en dev el
+   2026-10-11, resultado "TODAS LAS PRUEBAS PASARON".)_
 4. Mantener `supabase/seed.sql` reproducible y comprobar que solo contiene
    catálogos, unidades y canales ficticios cuando se use en otra instancia.
 5. Configurar Auth (registro, confirmación de correo, recuperación de cuenta)
@@ -72,10 +80,10 @@ No enviar aquí contraseñas, service-role keys ni tokens de acceso.
 
 ### Cambios pendientes de aplicar en el proyecto remoto
 
-- Migración `20261011100000_fix_vote_points_idempotency.sql` (idempotencia de
-  puntos por voto). No aplicada aún; no tocar producción sin autorización.
-- Ejecutar `supabase/tests/integrity_and_rls_test.sql` sobre una instancia de
-  desarrollo.
+- La migración `20261011100000_fix_vote_points_idempotency.sql` ya está aplicada
+  en la instancia de desarrollo. No tocar producción sin autorización.
+- Pruebas `supabase/tests/integrity_and_rls_test.sql`: ejecutadas y en verde en
+  desarrollo. Repetir si se cambia el esquema.
 
 ## Restricciones de seguridad
 

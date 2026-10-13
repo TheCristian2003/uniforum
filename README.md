@@ -270,18 +270,52 @@ Este README describe el diseño y alcance previstos. No afirma que todas las fun
 Implementado y comprobado con `flutter analyze` y `flutter test`:
 
 - Esquema SQL V1.1 en `supabase/migrations/` (tablas, constraints, RLS, puntos).
+  Verificado en desarrollo con `supabase/tests/integrity_and_rls_test.sql`
+  (resultado "TODAS LAS PRUEBAS PASARON", 2026-10-11).
 - Autenticación con `supabase_flutter`: registro, inicio y cierre de sesión, y
   restauración de sesión.
 - Perfiles y onboarding: alias, tipo de perfil y programa/sede opcionales,
   sujetos a los catálogos permitidos.
-- Tema Flutter con los colores institucionales de `docs/design.md`.
+- Navegación principal (`MainShell`): barra inferior Inicio, Canales, IA y
+  Perfil con botón flotante central que abre el formulario de publicación, y
+  widgets de estado reutilizables (carga, vacío, error).
+- Canales y feed: lista de canales activos, detalle de canal con sus
+  publicaciones y feed de publicaciones recientes en Inicio, con datos leídos de
+  Supabase bajo RLS. Las tarjetas muestran canal, categoría, fecha relativa y el
+  alias/verificación del autor (o "anónimo").
+- Crear publicación: formulario base (canal, tipo, categoría, título opcional,
+  cuerpo y anónimo) que inserta en `publicaciones` respetando RLS; los `aviso`
+  solo se ofrecen a roles privilegiados. Los campos específicos por tipo se
+  guardan en `publicaciones.metadatos` y se validan en el formulario: `venta`
+  (precio en COP, lugar opcional, disponible), `perdido` (fecha, lugar y
+  recompensa opcional), `encontrado` (fecha, lugar y entregado) y `evento`
+  (inicio, fin opcional, lugar y enlace http/https opcional). El detalle de la
+  publicación muestra estos datos y el feed resalta el precio de las ventas. Las
+  imágenes llegan en una etapa posterior.
+- Detalle de publicación con comentarios y votos: comentar, votar a favor/en
+  contra (sin poder votar el contenido propio) y marcar comentarios como
+  solución (solo el autor de la publicación, vía RPC). El alias de las
+  publicaciones anónimas no se solicita al servidor.
+- Reportes y moderación: cualquier usuario puede reportar una publicación
+  o un comentario eligiendo un motivo de `maestra`; el backend evita reportes
+  pendientes duplicados. Los roles privilegiados ven una pantalla de moderación
+  y, además de marcar el reporte como revisado o cerrado, pueden **ocultar** o
+  **eliminar** el contenido y **restringir temporal o permanentemente** al
+  autor (1/7/30 días o permanente). Un usuario restringido no puede publicar ni
+  comentar: las políticas RLS lo bloquean y la app lo avisa con un banner.
+- Tema Flutter con los colores institucionales de `docs/design/DESIGN.md`.
+- Gamificación: los puntos por acción (publicación +2, comentario +1, votos
+  positivos +3/+2 y solución +15) se calculan e idempotentes en SQL. El perfil
+  muestra puntos, nivel (Novato/Activo/Referente/Leyenda), estadísticas reales y
+  los distintivos, que el backend otorga automáticamente para los logros
+  verificables (ver `docs/decisions.md`).
 
 Pendiente:
 
-- Aplicar la migración de idempotencia de votos y ejecutar las pruebas SQL en
-  el proyecto de desarrollo.
-- Confirmar el mecanismo de confirmación de correo en Supabase Auth.
-- Base Flutter completa (navegación Inicio/Canales/IA/Perfil, feed, canales,
-  publicaciones, comentarios, votos, reportes), gamificación e IA.
+- Probar el registro/login/onboarding contra el proyecto de desarrollo con
+  usuarios reales y confirmar el mecanismo de confirmación de correo en
+  Supabase Auth.
+- Las imágenes de las publicaciones y la validación de metadatos en SQL (hoy
+  solo se validan en el formulario de Flutter).
 - Asignación de `app_metadata.app_role` desde backend y tipografía Plus Jakarta
   Sans.

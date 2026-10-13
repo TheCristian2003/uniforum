@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 /// Tema de la aplicación basado en los colores institucionales de
-/// `docs/design.md`. La tipografía Plus Jakarta Sans queda pendiente para la
+/// `docs/design/DESIGN.md`. La tipografía Plus Jakarta Sans queda pendiente para la
 /// fase de pulido visual; por ahora se usa la tipografía por defecto.
 class AppTheme {
   const AppTheme._();
@@ -69,7 +69,7 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.ugYellow,
-          foregroundColor: AppColors.onPrimary,
+          foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

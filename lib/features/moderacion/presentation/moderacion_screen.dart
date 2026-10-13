@@ -1,0 +1,513 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/auth/roles.dart';
+import '../../../core/providers.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/fecha_relativa.dart';
+import '../../../core/widgets/estado_view.dart';
+import '../../../data/models/catalogo_item.dart';
+import '../../../data/models/reporte.dart';
+import '../../../data/repositories/moderacion_repository.dart';
+import '../../../data/repositories/reportes_repository.dart';
+
+/// Pantalla mínima de moderación: lista los reportes pendientes y permite
+/// ocultar o eliminar el contenido y restringir a su autor, además de marcar
+/// el reporte como revisado o cerrado.
+///
+/// No existe un diseño equivalente en `docs/design/DESIGN.md`; reutiliza los
+/// widgets de estado y el lenguaje visual de las tarjetas del feed.
+class ModeracionScreen extends ConsumerStatefulWidget {
+  const ModeracionScreen({super.key});
+
+  @override
+  ConsumerState<ModeracionScreen> createState() => _ModeracionScreenState();
+}
+
+class _ModeracionScreenState extends ConsumerState<ModeracionScreen> {
+  int? _idCodigo(List<CatalogoItem> estados, String codigo) {
+    for (final estado in estados) {
+      if (estado.codigo == codigo) return estado.id;
+    }
+    return null;
+  }
+
+  Future<void> _cambiarEstado(String reporteId, int estadoId) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(reportesRepositoryProvider)
+          .marcarEstado(reporteId: reporteId, estadoId: estadoId);
+      ref.invalidate(reportesPendientesProvider);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Reporte actualizado.')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo actualizar el reporte.')),
+      );
+    }
+  }
+
+  Future<void> _ocultar(Reporte reporte, int? revisadoId) async {
+    final publicacionId = reporte.publicacionId;
+    if (publicacionId == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(moderacionRepositoryProvider)
+          .ocultarPublicacion(publicacionId);
+      if (revisadoId != null) {
+        await ref
+            .read(reportesRepositoryProvider)
+            .marcarEstado(reporteId: reporte.id, estadoId: revisadoId);
+      }
+      ref.invalidate(reportesPendientesProvider);
+      ref.invalidate(feedRecientesProvider);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Publicación oculta.')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo ocultar la publicación.')),
+      );
+    }
+  }
+
+  Future<void> _eliminar(Reporte reporte) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar contenido'),
+        content: const Text(
+          'Esta acción borra el contenido de forma permanente, junto con sus '
+          'comentarios y votos. No se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.ugRed),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+
+    try {
+      final repo = ref.read(moderacionRepositoryProvider);
+      if (reporte.esComentario) {
+        await repo.eliminarComentario(reporte.comentarioId!);
+      } else {
+        await repo.eliminarPublicacion(reporte.publicacionId!);
+      }
+      ref.invalidate(reportesPendientesProvider);
+      ref.invalidate(feedRecientesProvider);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Contenido eliminado.')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo eliminar el contenido.')),
+      );
+    }
+  }
+
+  Future<void> _restringir(Reporte reporte, int? revisadoId) async {
+    final autorId = reporte.autorId;
+    if (autorId == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final entrada = await _showRestringirDialog(context);
+    if (entrada == null) return;
+
+    try {
+      await ref
+          .read(moderacionRepositoryProvider)
+          .restringirUsuario(
+            usuarioId: autorId,
+            motivo: entrada.motivo,
+            dias: entrada.dias,
+            reporteId: reporte.id,
+          );
+      if (revisadoId != null) {
+        await ref
+            .read(reportesRepositoryProvider)
+            .marcarEstado(reporteId: reporte.id, estadoId: revisadoId);
+      }
+      ref.invalidate(reportesPendientesProvider);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            entrada.dias == null
+                ? 'Usuario restringido de forma permanente.'
+                : 'Usuario restringido por ${entrada.dias} días.',
+          ),
+        ),
+      );
+    } catch (error) {
+      final texto = error.toString().toLowerCase();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            texto.contains('ya tiene una restricción')
+                ? 'El usuario ya tiene una restricción vigente.'
+                : 'No se pudo restringir al usuario.',
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final privilegiado = esRolPrivilegiado(ref.watch(currentUserProvider));
+
+    if (!privilegiado) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Moderación')),
+        body: const EmptyView(
+          icono: Icons.gpp_maybe_outlined,
+          titulo: 'Acceso restringido',
+          mensaje: 'Solo el equipo de moderación puede revisar los reportes.',
+        ),
+      );
+    }
+
+    final miId = ref.watch(currentUserProvider)?.id;
+    final reportes = ref.watch(reportesPendientesProvider);
+    final estados = ref.watch(catalogoProvider(ReportesRepository.estado));
+    final listaEstados = estados.value ?? const <CatalogoItem>[];
+    final revisadoId = _idCodigo(listaEstados, 'revisado');
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Moderación')),
+      body: SafeArea(
+        child: reportes.when(
+          data: (items) => items.isEmpty
+              ? _vacio()
+              : ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final reporte in items)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _ReporteTile(
+                          reporte: reporte,
+                          estados: listaEstados,
+                          puedeRestringir:
+                              reporte.autorId != null &&
+                              reporte.autorId != miId,
+                          onCambiarEstado: (estadoId) =>
+                              _cambiarEstado(reporte.id, estadoId),
+                          onOcultar: () => _ocultar(reporte, revisadoId),
+                          onEliminar: () => _eliminar(reporte),
+                          onRestringir: () => _restringir(reporte, revisadoId),
+                        ),
+                      ),
+                  ],
+                ),
+          loading: () => const LoadingView(mensaje: 'Cargando reportes…'),
+          error: (_, _) => ErrorView(
+            mensaje: 'No se pudieron cargar los reportes.',
+            onReintentar: () => ref.invalidate(reportesPendientesProvider),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget _vacio() => ListView(
+  physics: const AlwaysScrollableScrollPhysics(),
+  children: const [
+    Padding(
+      padding: EdgeInsets.only(top: 80),
+      child: EmptyView(
+        icono: Icons.verified_user_outlined,
+        titulo: 'Sin reportes pendientes',
+        mensaje: 'Todo está en orden por ahora.',
+      ),
+    ),
+  ],
+);
+
+class _ReporteTile extends StatelessWidget {
+  const _ReporteTile({
+    required this.reporte,
+    required this.estados,
+    required this.puedeRestringir,
+    required this.onCambiarEstado,
+    required this.onOcultar,
+    required this.onEliminar,
+    required this.onRestringir,
+  });
+
+  final Reporte reporte;
+  final List<CatalogoItem> estados;
+  final bool puedeRestringir;
+  final ValueChanged<int> onCambiarEstado;
+  final VoidCallback onOcultar;
+  final VoidCallback onEliminar;
+  final VoidCallback onRestringir;
+
+  int? _id(String codigo) {
+    for (final estado in estados) {
+      if (estado.codigo == codigo) return estado.id;
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final revisado = _id('revisado');
+    final cerrado = _id('cerrado');
+    final descripcion = reporte.descripcion;
+    final contenido = reporte.contenido;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _Chip(
+                texto: reporte.motivo,
+                color: AppColors.ugRed,
+                fondo: AppColors.ugRedLight,
+              ),
+              const SizedBox(width: 6),
+              _Chip(
+                texto: reporte.esComentario ? 'Comentario' : 'Publicación',
+                color: AppColors.onSurfaceVariant,
+                fondo: AppColors.surfaceContainer,
+              ),
+              const Spacer(),
+              Text(
+                fechaRelativa(reporte.creadoEn),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (reporte.tituloContenido != null) ...[
+            Text(
+              reporte.tituloContenido!,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            contenido == null || contenido.isEmpty
+                ? 'Contenido no disponible.'
+                : contenido,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.onSurfaceVariant),
+          ),
+          if (descripcion != null && descripcion.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              '“$descripcion”',
+              style: const TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            'Reportado por @${reporte.reportanteAlias ?? 'usuario'}',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (!reporte.esComentario)
+                OutlinedButton.icon(
+                  onPressed: onOcultar,
+                  icon: const Icon(Icons.visibility_off_outlined, size: 18),
+                  label: const Text('Ocultar'),
+                ),
+              OutlinedButton.icon(
+                onPressed: onEliminar,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.ugRed,
+                  side: const BorderSide(color: AppColors.ugRed),
+                ),
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: const Text('Eliminar'),
+              ),
+              if (puedeRestringir)
+                OutlinedButton.icon(
+                  onPressed: onRestringir,
+                  icon: const Icon(Icons.block_outlined, size: 18),
+                  label: const Text('Restringir autor'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Divider(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: revisado == null
+                      ? null
+                      : () => onCambiarEstado(revisado),
+                  child: const Text('Marcar revisado'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.tonal(
+                  onPressed: cerrado == null
+                      ? null
+                      : () => onCambiarEstado(cerrado),
+                  child: const Text('Cerrar'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Resultado del diálogo de restricción.
+class _RestriccionInput {
+  const _RestriccionInput({required this.motivo, required this.dias});
+
+  final String motivo;
+  final int? dias;
+}
+
+/// Abre el diálogo para restringir a un usuario. Devuelve `null` si se cancela.
+Future<_RestriccionInput?> _showRestringirDialog(BuildContext context) {
+  return showDialog<_RestriccionInput>(
+    context: context,
+    builder: (_) => const _RestringirDialog(),
+  );
+}
+
+class _RestringirDialog extends StatefulWidget {
+  const _RestringirDialog();
+
+  @override
+  State<_RestringirDialog> createState() => _RestringirDialogState();
+}
+
+class _RestringirDialogState extends State<_RestringirDialog> {
+  final _motivoController = TextEditingController();
+  int? _dias = 7;
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
+  }
+
+  void _enviar() {
+    final motivo = _motivoController.text.trim();
+    if (motivo.length < 3) return;
+    Navigator.of(context).pop(_RestriccionInput(motivo: motivo, dias: _dias));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Restringir usuario'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'El usuario no podrá publicar ni comentar mientras la restricción '
+            'esté vigente.',
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _motivoController,
+            maxLength: 300,
+            minLines: 2,
+            maxLines: 3,
+            onChanged: (_) => setState(() {}),
+            decoration: const InputDecoration(
+              labelText: 'Motivo',
+              alignLabelWithHint: true,
+              hintText: 'Explica brevemente la sanción',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final opcion in ModeracionRepository.duraciones)
+                ChoiceChip(
+                  label: Text(opcion.label),
+                  selected: _dias == opcion.value,
+                  onSelected: (_) => setState(() => _dias = opcion.value),
+                ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: AppColors.ugRed),
+          onPressed: _motivoController.text.trim().length < 3 ? null : _enviar,
+          child: const Text('Restringir'),
+        ),
+      ],
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip({required this.texto, required this.color, required this.fondo});
+
+  final String texto;
+  final Color color;
+  final Color fondo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: fondo,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        texto,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
