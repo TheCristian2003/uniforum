@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uniforum/core/providers.dart';
 import 'package:uniforum/data/models/catalogo_item.dart';
+import 'package:uniforum/data/models/comentario.dart';
+import 'package:uniforum/data/models/publicacion.dart';
 import 'package:uniforum/data/models/reporte.dart';
 import 'package:uniforum/features/moderacion/presentation/moderacion_screen.dart';
 
@@ -137,5 +139,57 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sin reportes pendientes'), findsOneWidget);
+  });
+
+  testWidgets('moderación lista contenido reciente para moderar',
+      (tester) async {
+    final publicacion = Publicacion(
+      id: 'p1',
+      canalId: 'c1',
+      canalNombre: 'General',
+      tipoId: 1,
+      tipoNombre: 'Discusión',
+      categoriaId: 1,
+      categoriaNombre: 'Académico',
+      cuerpo: 'Publicación reciente de prueba',
+      anonimo: false,
+      puntaje: 0,
+      creadoEn: DateTime.utc(2026, 10, 11, 12),
+      autorId: 'u9',
+      autorAlias: 'leo',
+    );
+    final comentario = Comentario(
+      id: 'co1',
+      publicacionId: 'p1',
+      autorId: 'u9',
+      cuerpo: 'Comentario reciente de prueba',
+      esSolucion: false,
+      puntaje: 0,
+      creadoEn: DateTime.utc(2026, 10, 11, 13),
+      autorAlias: 'leo',
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserProvider.overrideWithValue(usuario(rol: 'moderador')),
+          reportesPendientesProvider.overrideWith((ref) async => []),
+          catalogoProvider('estado_reporte')
+              .overrideWith((ref) async => estados),
+          feedRecientesProvider.overrideWith((ref) async => [publicacion]),
+          comentariosRecientesProvider.overrideWith((ref) async => [comentario]),
+        ],
+        child: const MaterialApp(home: ModeracionScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Contenido'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Publicación reciente de prueba'), findsOneWidget);
+    expect(find.text('Comentario reciente de prueba'), findsOneWidget);
+    expect(find.text('Ocultar'), findsOneWidget);
+    expect(find.text('Eliminar'), findsNWidgets(2));
   });
 }

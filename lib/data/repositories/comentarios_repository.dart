@@ -2,7 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/comentario.dart';
 
-/// Lectura y creación de comentarios, y marcado de solución.
+/// Lectura y creación de comentarios, edición y borrado de los propios, y
+/// marcado de solución.
 class ComentariosRepository {
   ComentariosRepository(this._client);
 
@@ -35,6 +36,35 @@ class ComentariosRepository {
       'cuerpo': cuerpo,
       if (imagenes.isNotEmpty) 'imagenes': imagenes,
     });
+  }
+
+  /// Comentarios recientes de toda la aplicación, para moderación.
+  Future<List<Comentario>> fetchRecientes({int limite = 20}) async {
+    final rows = await _client
+        .from('comentarios')
+        .select(_columnas)
+        .order('creado_en', ascending: false)
+        .limit(limite);
+    return rows
+        .map((row) => Comentario.fromJson(Map<String, dynamic>.from(row as Map)))
+        .toList();
+  }
+
+  /// Actualiza un comentario propio (cuerpo e imágenes). RLS valida la autoría.
+  Future<void> actualizar({
+    required String comentarioId,
+    required String cuerpo,
+    List<String> imagenes = const [],
+  }) async {
+    await _client
+        .from('comentarios')
+        .update({'cuerpo': cuerpo, 'imagenes': imagenes})
+        .eq('id', comentarioId);
+  }
+
+  /// Elimina un comentario propio (RLS valida la autoría).
+  Future<void> eliminar(String comentarioId) async {
+    await _client.from('comentarios').delete().eq('id', comentarioId);
   }
 
   /// Marca una solución. El backend valida que solo el autor de la publicación

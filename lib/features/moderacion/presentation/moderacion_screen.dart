@@ -7,6 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/fecha_relativa.dart';
 import '../../../core/widgets/estado_view.dart';
 import '../../../data/models/catalogo_item.dart';
+import '../../../data/models/comentario.dart';
+import '../../../data/models/publicacion.dart';
 import '../../../data/models/reporte.dart';
 import '../../../data/repositories/moderacion_repository.dart';
 import '../../../data/repositories/reportes_repository.dart';
@@ -184,40 +186,65 @@ class _ModeracionScreenState extends ConsumerState<ModeracionScreen> {
     final listaEstados = estados.value ?? const <CatalogoItem>[];
     final revisadoId = _idCodigo(listaEstados, 'revisado');
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Moderación')),
-      body: SafeArea(
-        child: reportes.when(
-          data: (items) => items.isEmpty
-              ? _vacio()
-              : ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    for (final reporte in items)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _ReporteTile(
-                          reporte: reporte,
-                          estados: listaEstados,
-                          puedeRestringir:
-                              reporte.autorId != null &&
-                              reporte.autorId != miId,
-                          onCambiarEstado: (estadoId) =>
-                              _cambiarEstado(reporte.id, estadoId),
-                          onOcultar: () => _ocultar(reporte, revisadoId),
-                          onEliminar: () => _eliminar(reporte),
-                          onRestringir: () => _restringir(reporte, revisadoId),
-                        ),
-                      ),
-                  ],
-                ),
-          loading: () => const LoadingView(mensaje: 'Cargando reportes…'),
-          error: (_, _) => ErrorView(
-            mensaje: 'No se pudieron cargar los reportes.',
-            onReintentar: () => ref.invalidate(reportesPendientesProvider),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Moderación'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Reportes'),
+              Tab(text: 'Contenido'),
+            ],
           ),
         ),
+        body: SafeArea(
+          child: TabBarView(
+            children: [
+              _reportesView(reportes, listaEstados, revisadoId, miId),
+              const _ContenidoTab(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _reportesView(
+    AsyncValue<List<Reporte>> reportes,
+    List<CatalogoItem> listaEstados,
+    int? revisadoId,
+    String? miId,
+  ) {
+    return reportes.when(
+      data: (items) => items.isEmpty
+          ? _vacio()
+          : ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                for (final reporte in items)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ReporteTile(
+                      reporte: reporte,
+                      estados: listaEstados,
+                      puedeRestringir:
+                          reporte.autorId != null &&
+                          reporte.autorId != miId,
+                      onCambiarEstado: (estadoId) =>
+                          _cambiarEstado(reporte.id, estadoId),
+                      onOcultar: () => _ocultar(reporte, revisadoId),
+                      onEliminar: () => _eliminar(reporte),
+                      onRestringir: () => _restringir(reporte, revisadoId),
+                    ),
+                  ),
+              ],
+            ),
+      loading: () => const LoadingView(mensaje: 'Cargando reportes…'),
+      error: (_, _) => ErrorView(
+        mensaje: 'No se pudieron cargar los reportes.',
+        onReintentar: () => ref.invalidate(reportesPendientesProvider),
       ),
     );
   }
@@ -236,6 +263,404 @@ Widget _vacio() => ListView(
     ),
   ],
 );
+
+/// Pestaña de moderación que lista contenido reciente sin depender de reportes.
+class _ContenidoTab extends ConsumerStatefulWidget {
+  const _ContenidoTab();
+
+  @override
+  ConsumerState<_ContenidoTab> createState() => _ContenidoTabState();
+}
+
+class _ContenidoTabState extends ConsumerState<_ContenidoTab> {
+  Future<bool> _confirmar({
+    required String titulo,
+    required String mensaje,
+  }) async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(titulo),
+        content: Text(mensaje),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.ugRed),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    return resultado == true;
+  }
+
+  Future<void> _ocultarPublicacion(String id) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(moderacionRepositoryProvider).ocultarPublicacion(id);
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(publicacionDetalleProvider(id));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Publicación oculta.')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo ocultar la publicación.')),
+      );
+    }
+  }
+
+  Future<void> _eliminarPublicacion(String id) async {
+    final confirmar = await _confirmar(
+      titulo: 'Eliminar publicación',
+      mensaje: 'Esta acción borra la publicación de forma permanente, junto '
+          'con sus comentarios y votos. No se puede deshacer.',
+    );
+    if (!confirmar) return;
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(moderacionRepositoryProvider).eliminarPublicacion(id);
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(comentariosRecientesProvider);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Publicación eliminada.')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo eliminar la publicación.')),
+      );
+    }
+  }
+
+  Future<void> _eliminarComentario(Comentario comentario) async {
+    final confirmar = await _confirmar(
+      titulo: 'Eliminar comentario',
+      mensaje: 'Esta acción borra el comentario de forma permanente. '
+          'No se puede deshacer.',
+    );
+    if (!confirmar) return;
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(moderacionRepositoryProvider)
+          .eliminarComentario(comentario.id);
+      ref.invalidate(comentariosRecientesProvider);
+      ref.invalidate(
+        comentariosDePublicacionProvider(comentario.publicacionId),
+      );
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Comentario eliminado.')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo eliminar el comentario.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final publicaciones = ref.watch(feedRecientesProvider);
+    final comentarios = ref.watch(comentariosRecientesProvider);
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(feedRecientesProvider);
+        ref.invalidate(comentariosRecientesProvider);
+        try {
+          await Future.wait([
+            ref.read(feedRecientesProvider.future),
+            ref.read(comentariosRecientesProvider.future),
+          ]);
+        } catch (_) {
+          // El error se refleja en el estado de la vista.
+        }
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          const _SeccionTitulo(texto: 'Publicaciones recientes'),
+          const SizedBox(height: 8),
+          publicaciones.when(
+            data: (items) => items.isEmpty
+                ? const _Aviso(texto: 'No hay publicaciones recientes.')
+                : Column(
+                    children: [
+                      for (final publicacion in items)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _ContenidoPublicacionTile(
+                            publicacion: publicacion,
+                            onOcultar: () =>
+                                _ocultarPublicacion(publicacion.id),
+                            onEliminar: () =>
+                                _eliminarPublicacion(publicacion.id),
+                          ),
+                        ),
+                    ],
+                  ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: LoadingView(mensaje: 'Cargando publicaciones…'),
+            ),
+            error: (_, _) => ErrorView(
+              mensaje: 'No se pudieron cargar las publicaciones.',
+              onReintentar: () => ref.invalidate(feedRecientesProvider),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const _SeccionTitulo(texto: 'Comentarios recientes'),
+          const SizedBox(height: 8),
+          comentarios.when(
+            data: (items) => items.isEmpty
+                ? const _Aviso(texto: 'No hay comentarios recientes.')
+                : Column(
+                    children: [
+                      for (final comentario in items)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _ContenidoComentarioTile(
+                            comentario: comentario,
+                            onEliminar: () => _eliminarComentario(comentario),
+                          ),
+                        ),
+                    ],
+                  ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: LoadingView(mensaje: 'Cargando comentarios…'),
+            ),
+            error: (_, _) => ErrorView(
+              mensaje: 'No se pudieron cargar los comentarios.',
+              onReintentar: () => ref.invalidate(comentariosRecientesProvider),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SeccionTitulo extends StatelessWidget {
+  const _SeccionTitulo({required this.texto});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      texto,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+        color: AppColors.ugBlue,
+      ),
+    );
+  }
+}
+
+class _Aviso extends StatelessWidget {
+  const _Aviso({required this.texto});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        texto,
+        style: const TextStyle(color: AppColors.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+class _ContenidoPublicacionTile extends StatelessWidget {
+  const _ContenidoPublicacionTile({
+    required this.publicacion,
+    required this.onOcultar,
+    required this.onEliminar,
+  });
+
+  final Publicacion publicacion;
+  final VoidCallback onOcultar;
+  final VoidCallback onEliminar;
+
+  @override
+  Widget build(BuildContext context) {
+    final autor =
+        publicacion.anonimo ? 'Anónimo' : (publicacion.autorAlias ?? 'Usuario');
+    final titulo = publicacion.titulo;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _Chip(
+                texto: publicacion.tipoNombre ?? 'Publicación',
+                color: AppColors.ugBlue,
+                fondo: AppColors.ugBlueLight,
+              ),
+              if (publicacion.canalNombre != null) ...[
+                const SizedBox(width: 6),
+                _Chip(
+                  texto: '#${publicacion.canalNombre}',
+                  color: AppColors.onSurfaceVariant,
+                  fondo: AppColors.surfaceContainer,
+                ),
+              ],
+              const Spacer(),
+              Text(
+                fechaRelativa(publicacion.creadoEn),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (titulo != null && titulo.isNotEmpty) ...[
+            Text(
+              titulo,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            publicacion.cuerpo,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Por $autor',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onOcultar,
+                icon: const Icon(Icons.visibility_off_outlined, size: 18),
+                label: const Text('Ocultar'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onEliminar,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.ugRed,
+                  side: const BorderSide(color: AppColors.ugRed),
+                ),
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: const Text('Eliminar'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContenidoComentarioTile extends StatelessWidget {
+  const _ContenidoComentarioTile({
+    required this.comentario,
+    required this.onEliminar,
+  });
+
+  final Comentario comentario;
+  final VoidCallback onEliminar;
+
+  @override
+  Widget build(BuildContext context) {
+    final alias = comentario.autorAlias ?? 'Usuario';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _Chip(
+                texto: 'Comentario',
+                color: AppColors.onSurfaceVariant,
+                fondo: AppColors.surfaceContainer,
+              ),
+              const Spacer(),
+              Text(
+                fechaRelativa(comentario.creadoEn),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            comentario.cuerpo,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Por @$alias',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: onEliminar,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.ugRed,
+                side: const BorderSide(color: AppColors.ugRed),
+              ),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: const Text('Eliminar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _ReporteTile extends StatelessWidget {
   const _ReporteTile({

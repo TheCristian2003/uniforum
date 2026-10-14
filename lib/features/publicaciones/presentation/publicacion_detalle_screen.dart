@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/auth/roles.dart';
 import '../../../core/gamification/niveles.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/app_colors.dart';
@@ -189,6 +190,74 @@ class _PublicacionDetalleScreenState
     return mostrarReportarSheet(context, comentarioId: comentarioId);
   }
 
+  Future<void> _editarComentario(Comentario comentario) async {
+    final actualizado = await showDialog<bool>(
+      context: context,
+      builder: (_) => _EditarComentarioDialog(comentario: comentario),
+    );
+    if (actualizado == true) {
+      ref.invalidate(comentariosDePublicacionProvider(widget.publicacion.id));
+    }
+  }
+
+  Future<void> _eliminarComentario(
+    Comentario comentario, {
+    required bool propia,
+  }) async {
+    final confirmar = await _confirmar(
+      titulo: 'Eliminar comentario',
+      mensaje: '¿Seguro que quieres eliminar este comentario? '
+          'Esta acción no se puede deshacer.',
+    );
+    if (!confirmar) return;
+    try {
+      if (propia) {
+        await ref.read(comentariosRepositoryProvider).eliminar(comentario.id);
+      } else {
+        await ref
+            .read(moderacionRepositoryProvider)
+            .eliminarComentario(comentario.id);
+      }
+      ref.invalidate(comentariosDePublicacionProvider(widget.publicacion.id));
+      ref.invalidate(comentariosRecientesProvider);
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(publicacionesDeCanalProvider(widget.publicacion.canalId));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comentario eliminado.')),
+      );
+    } catch (_) {
+      _mostrarError('No se pudo eliminar el comentario.');
+    }
+  }
+
+  /// Diálogo de confirmación reutilizable para acciones destructivas.
+  Future<bool> _confirmar({
+    required String titulo,
+    required String mensaje,
+    String accion = 'Eliminar',
+  }) async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(titulo),
+        content: Text(mensaje),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.ugRed),
+            child: Text(accion),
+          ),
+        ],
+      ),
+    );
+    return resultado == true;
+  }
+
   Publicacion get _actual =>
       ref.read(publicacionDetalleProvider(widget.publicacion.id)).value ??
       widget.publicacion;
@@ -205,31 +274,66 @@ class _PublicacionDetalleScreenState
   }
 
   Future<void> _eliminar() async {
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar publicación'),
-        content: const Text(
-          '¿Seguro que quieres eliminar esta publicación? '
+    final confirmar = await _confirmar(
+      titulo: 'Eliminar publicación',
+      mensaje: '¿Seguro que quieres eliminar esta publicación? '
           'Esta acción no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.ugRed),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
     );
-    if (confirmar != true) return;
+    if (!confirmar) return;
     try {
       await ref
           .read(publicacionesRepositoryProvider)
+          .eliminarPublicacion(widget.publicacion.id);
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(publicacionesDeCanalProvider(widget.publicacion.canalId));
+      ref.invalidate(publicacionDetalleProvider(widget.publicacion.id));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Publicación eliminada.')),
+      );
+      Navigator.of(context).pop();
+    } catch (_) {
+      _mostrarError('No se pudo eliminar la publicación.');
+    }
+  }
+
+  /// Oculta una publicación (moderación). Deja de aparecer en el feed.
+  Future<void> _ocultarPublicacion() async {
+    final confirmar = await _confirmar(
+      titulo: 'Ocultar publicación',
+      mensaje: 'La publicación dejará de mostrarse en el feed público. '
+          'Podrás revisarla desde la pantalla de Moderación.',
+      accion: 'Ocultar',
+    );
+    if (!confirmar) return;
+    try {
+      await ref
+          .read(moderacionRepositoryProvider)
+          .ocultarPublicacion(widget.publicacion.id);
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(publicacionesDeCanalProvider(widget.publicacion.canalId));
+      ref.invalidate(publicacionDetalleProvider(widget.publicacion.id));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Publicación oculta.')),
+      );
+    } catch (_) {
+      _mostrarError('No se pudo ocultar la publicación.');
+    }
+  }
+
+  /// Borrado duro de una publicación ajena (moderación).
+  Future<void> _eliminarPorModeracion() async {
+    final confirmar = await _confirmar(
+      titulo: 'Eliminar publicación',
+      mensaje: 'Como moderador, esta acción borra el contenido de forma '
+          'permanente, junto con sus comentarios y votos. No se puede '
+          'deshacer.',
+    );
+    if (!confirmar) return;
+    try {
+      await ref
+          .read(moderacionRepositoryProvider)
           .eliminarPublicacion(widget.publicacion.id);
       ref.invalidate(feedRecientesProvider);
       ref.invalidate(publicacionesDeCanalProvider(widget.publicacion.canalId));
@@ -269,6 +373,7 @@ class _PublicacionDetalleScreenState
         ref.watch(misVotosProvider).value ?? const MisVotos.vacia();
     final miId = ref.watch(currentUserProvider)?.id;
     final esMia = publicacion.esDe(miId);
+    final privilegiado = esRolPrivilegiado(ref.watch(currentUserProvider));
     final totalComentarios = comentarios.value?.length ?? 0;
 
     return Scaffold(
@@ -358,53 +463,86 @@ class _PublicacionDetalleScreenState
                   _editar();
                 case 'eliminar':
                   _eliminar();
+                case 'ocultar':
+                  _ocultarPublicacion();
+                case 'eliminar_moderacion':
+                  _eliminarPorModeracion();
                 case 'reportar':
                   _reportarPublicacion();
               }
             },
-            itemBuilder: (_) => esMia
-                ? const [
-                    PopupMenuItem(
-                      value: 'editar',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined, size: 20),
-                          SizedBox(width: 12),
-                          Text('Editar'),
-                        ],
-                      ),
+            itemBuilder: (_) {
+              if (esMia) {
+                return const [
+                  PopupMenuItem(
+                    value: 'editar',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 20),
+                        SizedBox(width: 12),
+                        Text('Editar'),
+                      ],
                     ),
-                    PopupMenuItem(
-                      value: 'eliminar',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            size: 20,
-                            color: AppColors.ugRed,
-                          ),
-                          SizedBox(width: 12),
-                          Text('Eliminar'),
-                        ],
-                      ),
+                  ),
+                  PopupMenuItem(
+                    value: 'eliminar',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: AppColors.ugRed,
+                        ),
+                        SizedBox(width: 12),
+                        Text('Eliminar'),
+                      ],
                     ),
-                  ]
-                : const [
-                    PopupMenuItem(
-                      value: 'reportar',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.flag_outlined,
-                            size: 20,
-                            color: AppColors.ugRed,
-                          ),
-                          SizedBox(width: 12),
-                          Text('Reportar'),
-                        ],
-                      ),
+                  ),
+                ];
+              }
+              return [
+                if (privilegiado) ...[
+                  const PopupMenuItem(
+                    value: 'ocultar',
+                    child: Row(
+                      children: [
+                        Icon(Icons.visibility_off_outlined, size: 20),
+                        SizedBox(width: 12),
+                        Text('Ocultar'),
+                      ],
                     ),
-                  ],
+                  ),
+                  const PopupMenuItem(
+                    value: 'eliminar_moderacion',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: AppColors.ugRed,
+                        ),
+                        SizedBox(width: 12),
+                        Text('Eliminar'),
+                      ],
+                    ),
+                  ),
+                ],
+                const PopupMenuItem(
+                  value: 'reportar',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.flag_outlined,
+                        size: 20,
+                        color: AppColors.ugRed,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Reportar'),
+                    ],
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),
@@ -480,6 +618,25 @@ class _PublicacionDetalleScreenState
                           onVotar: (valor) =>
                               _votarComentario(comentario.id, valor),
                           onMarcarSolucion: () => _marcarSolucion(comentario.id),
+                          onTapAutor: comentario.autorId == miId
+                              ? null
+                              : () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => PerfilUsuarioScreen(
+                                      usuarioId: comentario.autorId,
+                                    ),
+                                  ),
+                                ),
+                          onEditar: comentario.autorId == miId
+                              ? () => _editarComentario(comentario)
+                              : null,
+                          onEliminar:
+                              (comentario.autorId == miId || privilegiado)
+                              ? () => _eliminarComentario(
+                                  comentario,
+                                  propia: comentario.autorId == miId,
+                                )
+                              : null,
                           onReportar: comentario.autorId == miId
                               ? null
                               : () => _reportarComentario(comentario.id),
@@ -947,6 +1104,9 @@ class _ComentarioTile extends StatelessWidget {
     required this.esDelAutor,
     required this.onVotar,
     required this.onMarcarSolucion,
+    this.onTapAutor,
+    this.onEditar,
+    this.onEliminar,
     this.onReportar,
   });
 
@@ -957,6 +1117,9 @@ class _ComentarioTile extends StatelessWidget {
   final bool esDelAutor;
   final ValueChanged<int> onVotar;
   final VoidCallback onMarcarSolucion;
+  final VoidCallback? onTapAutor;
+  final VoidCallback? onEditar;
+  final VoidCallback? onEliminar;
   final VoidCallback? onReportar;
 
   @override
@@ -986,7 +1149,16 @@ class _ComentarioTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Avatar(alias: alias, imagen: null, anonimo: false, radio: 18),
+              GestureDetector(
+                onTap: onTapAutor,
+                behavior: HitTestBehavior.opaque,
+                child: _Avatar(
+                  alias: alias,
+                  imagen: comentario.autorAvatarUrl,
+                  anonimo: false,
+                  radio: 18,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -995,12 +1167,16 @@ class _ComentarioTile extends StatelessWidget {
                     Row(
                       children: [
                         Flexible(
-                          child: Text(
-                            alias,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
+                          child: GestureDetector(
+                            onTap: onTapAutor,
+                            behavior: HitTestBehavior.opaque,
+                            child: Text(
+                              alias,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
@@ -1059,6 +1235,52 @@ class _ComentarioTile extends StatelessWidget {
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
+              if (onEditar != null || onEliminar != null)
+                PopupMenuButton<String>(
+                  tooltip: 'Más opciones',
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(
+                    Icons.more_vert,
+                    size: 20,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'editar':
+                        onEditar?.call();
+                      case 'eliminar':
+                        onEliminar?.call();
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    if (onEditar != null)
+                      const PopupMenuItem(
+                        value: 'editar',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined, size: 20),
+                            SizedBox(width: 12),
+                            Text('Editar'),
+                          ],
+                        ),
+                      ),
+                    if (onEliminar != null)
+                      const PopupMenuItem(
+                        value: 'eliminar',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              size: 20,
+                              color: AppColors.ugRed,
+                            ),
+                            SizedBox(width: 12),
+                            Text('Eliminar'),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
             ],
           ),
           const SizedBox(height: 10),
@@ -1094,6 +1316,207 @@ class _ComentarioTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Diálogo para editar el cuerpo y la imagen de un comentario propio.
+class _EditarComentarioDialog extends ConsumerStatefulWidget {
+  const _EditarComentarioDialog({required this.comentario});
+
+  final Comentario comentario;
+
+  @override
+  ConsumerState<_EditarComentarioDialog> createState() =>
+      _EditarComentarioDialogState();
+}
+
+class _EditarComentarioDialogState
+    extends ConsumerState<_EditarComentarioDialog> {
+  late final TextEditingController _controller;
+  final List<ImagenSeleccionada> _nueva = [];
+  late String? _urlActual;
+  bool _guardando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.comentario.cuerpo);
+    _urlActual = widget.comentario.imagenes.isEmpty
+        ? null
+        : widget.comentario.imagenes.first;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _elegirImagen() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (!mounted || file == null) return;
+    final bytes = await file.readAsBytes();
+    const maxBytes = 5 * 1024 * 1024;
+    if (bytes.length > maxBytes) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La imagen supera los 5 MB. Selecciona una más ligera.'),
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _nueva
+        ..clear()
+        ..add(
+          ImagenSeleccionada(
+            bytes: bytes,
+            extension: file.path.split('.').last.toLowerCase(),
+          ),
+        );
+    });
+  }
+
+  void _quitarImagen() {
+    setState(() {
+      _nueva.clear();
+      _urlActual = null;
+    });
+  }
+
+  Future<void> _guardar() async {
+    final texto = _controller.text.trim();
+    if (texto.isEmpty || _guardando) return;
+    setState(() => _guardando = true);
+    try {
+      final List<String> imagenes;
+      if (_nueva.isNotEmpty) {
+        final user = ref.read(currentUserProvider);
+        if (user == null) throw StateError('Sin sesión');
+        final url = await ref.read(imagenesRepositoryProvider).subirAdjunto(
+              usuarioId: user.id,
+              bytes: _nueva.first.bytes,
+              extension: _nueva.first.extension,
+            );
+        imagenes = [url];
+      } else if (_urlActual != null) {
+        imagenes = [_urlActual!];
+      } else {
+        imagenes = const [];
+      }
+      await ref.read(comentariosRepositoryProvider).actualizar(
+            comentarioId: widget.comentario.id,
+            cuerpo: texto,
+            imagenes: imagenes,
+          );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _guardando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo guardar el comentario.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tieneImagen = _nueva.isNotEmpty || _urlActual != null;
+
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Editar comentario'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            minLines: 2,
+            maxLines: 6,
+            decoration: const InputDecoration(
+              labelText: 'Comentario',
+              alignLabelWithHint: true,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (tieneImagen) ...[
+            _VistaImagen(url: _urlActual, bytes: _nueva.isEmpty ? null : _nueva.first.bytes),
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: _guardando ? null : _quitarImagen,
+              icon: const Icon(Icons.close, size: 18),
+              label: const Text('Quitar imagen'),
+            ),
+          ] else
+            OutlinedButton.icon(
+              onPressed: _guardando ? null : _elegirImagen,
+              icon: const Icon(Icons.image_outlined, size: 18),
+              label: const Text('Añadir imagen'),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _guardando ? null : () => Navigator.of(context).pop(false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: _guardando ? null : _guardar,
+          child: _guardando
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Guardar'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Vista previa de una imagen de comentario (URL remota o bytes locales).
+class _VistaImagen extends StatelessWidget {
+  const _VistaImagen({this.url, this.bytes});
+
+  final String? url;
+  final Uint8List? bytes;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: bytes != null
+          ? Image.memory(
+              bytes!,
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            )
+          : Image.network(
+              url ?? '',
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Container(
+                height: 150,
+                color: AppColors.surfaceContainer,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.broken_image_outlined,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ),
     );
   }
 }

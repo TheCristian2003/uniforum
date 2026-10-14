@@ -125,6 +125,11 @@ final comentariosDePublicacionProvider =
       .fetchPorPublicacion(publicacionId);
 });
 
+/// Comentarios recientes de toda la aplicación, para moderación.
+final comentariosRecientesProvider = FutureProvider<List<Comentario>>((ref) {
+  return ref.watch(comentariosRepositoryProvider).fetchRecientes();
+});
+
 /// Votos del usuario autenticado (publicaciones y comentarios).
 final misVotosProvider = FutureProvider<MisVotos>((ref) {
   return ref.watch(votosRepositoryProvider).fetchMisVotos();
