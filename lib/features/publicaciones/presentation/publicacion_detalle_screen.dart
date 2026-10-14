@@ -1337,6 +1337,7 @@ class _EditarComentarioDialogState
   final List<ImagenSeleccionada> _nueva = [];
   late String? _urlActual;
   bool _guardando = false;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -1345,11 +1346,15 @@ class _EditarComentarioDialogState
     _urlActual = widget.comentario.imagenes.isEmpty
         ? null
         : widget.comentario.imagenes.first;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -1439,7 +1444,7 @@ class _EditarComentarioDialogState
         children: [
           TextField(
             controller: _controller,
-            autofocus: true,
+            focusNode: _focusNode,
             minLines: 2,
             maxLines: 6,
             decoration: const InputDecoration(
