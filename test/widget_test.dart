@@ -12,13 +12,14 @@ void main() {
       ),
     );
 
-    expect(find.text('Bienvenido'), findsOneWidget);
+    expect(find.text('¡Te damos la bienvenida!'), findsOneWidget);
     expect(find.text('Iniciar sesión'), findsOneWidget);
 
     await tester.tap(find.text('Iniciar sesión'));
     await tester.pump();
 
     expect(find.text('Ingresa tu correo'), findsOneWidget);
-    expect(find.text('Ingresa tu contraseña'), findsOneWidget);
+    // El texto aparece dos veces: como hint del campo y como error de validación.
+    expect(find.text('Ingresa tu contraseña'), findsNWidgets(2));
   });
 }

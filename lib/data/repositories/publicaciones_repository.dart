@@ -87,7 +87,8 @@ class PublicacionesRepository {
   ///
   /// Solo cambia campos editables por el autor (título, cuerpo, anonimato,
   /// imágenes y metadatos). El canal, tipo, categoría y la autoría los conserva
-  /// RLS. `metadatos` en `null` limpia el objeto cuando el tipo no los usa.
+  /// RLS. Si `metadatos` es `null` se guarda `{}` porque la columna es
+  /// `not null` y admite objetos vacíos.
   Future<void> actualizarPublicacion({
     required String id,
     required String cuerpo,
@@ -103,7 +104,7 @@ class PublicacionesRepository {
           'cuerpo': cuerpo,
           'anonimo': anonimo,
           'imagenes': imagenes,
-          'metadatos': metadatos,
+          'metadatos': metadatos ?? const <String, dynamic>{},
         })
         .eq('id', id);
   }
@@ -172,7 +173,7 @@ class PublicacionesRepository {
     if (ids.isEmpty) return const {};
     final rows = await _client
         .from('perfiles')
-        .select('id, alias, avatar_url, es_verificada')
+        .select('id, alias, avatar_url, es_verificada, puntos')
         .inFilter('id', ids.toList());
     return {
       for (final row in rows)

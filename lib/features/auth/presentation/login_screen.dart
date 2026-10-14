@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/encabezado_auth.dart';
+import '../../../core/widgets/auth_widgets.dart';
 import '../../../core/widgets/message_card.dart';
 import 'auth_controller.dart';
 import 'register_screen.dart';
@@ -40,127 +40,152 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authControllerProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: Column(
-        children: [
-          const EncabezadoAuth(
-            titulo: 'Bienvenido',
-            subtitulo: 'Plataforma social universitaria',
-          ),
-          Expanded(
+      backgroundColor: AppColors.background,
+      body: FondoAuth(
+        child: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.outlineVariant),
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text(
-                            'Inicia sesión con tu correo',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            autofillHints: const [AutofillHints.email],
-                            decoration: const InputDecoration(
-                              labelText: 'Correo',
-                              prefixIcon: Icon(Icons.mail_outline),
-                            ),
-                            validator: _validarEmail,
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: _obscure,
-                            autofillHints: const [AutofillHints.password],
-                            decoration: InputDecoration(
-                              labelText: 'Contraseña',
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                icon: Icon(_obscure
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined),
-                                onPressed: () =>
-                                    setState(() => _obscure = !_obscure),
-                              ),
-                            ),
-                            validator: (value) =>
-                                (value == null || value.isEmpty)
-                                    ? 'Ingresa tu contraseña'
-                                    : null,
-                          ),
-                          if (authState.status == AuthStatus.error &&
-                              authState.message != null) ...[
-                            const SizedBox(height: 12),
-                            MessageCard(texto: authState.message!),
-                          ],
-                          const SizedBox(height: 20),
-                          FilledButton(
-                            onPressed: authState.isLoading ? null : _submit,
-                            child: authState.isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Iniciar sesión'),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '¿No tienes cuenta?',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: authState.isLoading
-                                    ? null
-                                    : () {
-                                        ref
-                                            .read(authControllerProvider
-                                                .notifier)
-                                            .clearMessage();
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute<void>(
-                                            builder: (_) =>
-                                                const RegisterScreen(),
-                                          ),
-                                        );
-                                      },
-                                child: const Text('Crear cuenta'),
-                              ),
-                            ],
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const MarcaCampus(),
+                    const SizedBox(height: 22),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: AppColors.outlineVariant.withValues(alpha: 0.6),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              '¡Te damos la bienvenida!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Ingresa a tu ecosistema universitario',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            CampoAuth(
+                              label: 'Correo',
+                              requerido: true,
+                              icono: Icons.alternate_email_rounded,
+                              hint: 'ejemplo@correo.com',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              autofillHints: const [AutofillHints.email],
+                              validator: _validarEmail,
+                            ),
+                            const SizedBox(height: 14),
+                            CampoAuth(
+                              label: 'Contraseña',
+                              requerido: true,
+                              icono: Icons.lock_outline_rounded,
+                              hint: 'Ingresa tu contraseña',
+                              controller: _passwordController,
+                              obscureText: _obscure,
+                              autofillHints: const [AutofillHints.password],
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  size: 20,
+                                ),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
+                              ),
+                              validator: (value) =>
+                                  (value == null || value.isEmpty)
+                                      ? 'Ingresa tu contraseña'
+                                      : null,
+                            ),
+                            if (authState.status == AuthStatus.error &&
+                                authState.message != null) ...[
+                              const SizedBox(height: 14),
+                              MessageCard(texto: authState.message!),
+                            ],
+                            const SizedBox(height: 20),
+                            BotonAuth(
+                              texto: 'Iniciar sesión',
+                              cargando: authState.isLoading,
+                              onPressed: _submit,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Flexible(
+                                  child: Text(
+                                    '¿No tienes una cuenta?',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: authState.isLoading
+                                      ? null
+                                      : () {
+                                          ref
+                                              .read(authControllerProvider
+                                                  .notifier)
+                                              .clearMessage();
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute<void>(
+                                              builder: (_) =>
+                                                  const RegisterScreen(),
+                                            ),
+                                          );
+                                        },
+                                  child: const Text(
+                                    'Crear cuenta',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.ugRed,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

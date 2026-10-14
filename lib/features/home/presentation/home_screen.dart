@@ -7,6 +7,7 @@ import '../../../core/widgets/estado_view.dart';
 import '../../../data/models/perfil.dart';
 import '../../../data/models/publicacion.dart';
 import '../../feed/presentation/widgets/publicacion_card.dart';
+import '../../perfil/presentation/perfil_screen.dart';
 import '../../publicaciones/presentation/publicacion_detalle_screen.dart';
 import '../../shell/presentation/widgets/cabecera_perfil.dart';
 
@@ -62,6 +63,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case _FiltroFeed.torneos:
         return items.where((p) => p.categoriaCodigo == 'deportes').toList();
     }
+  }
+
+  /// Abre el perfil del autor de una publicación (si no es anónima ni propia).
+  VoidCallback? _abrirAutor(Publicacion publicacion) {
+    final autorId = publicacion.autorId;
+    if (publicacion.anonimo || autorId == null) return null;
+    if (autorId == ref.read(currentUserProvider)?.id) return null;
+    return () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PerfilUsuarioScreen(usuarioId: autorId),
+          ),
+        );
   }
 
   @override
@@ -152,6 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ),
                                 ),
                               ),
+                              onTapAutor: _abrirAutor(publicacion),
                             ),
                           ),
                       ],

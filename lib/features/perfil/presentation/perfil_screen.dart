@@ -92,6 +92,106 @@ class PerfilScreen extends ConsumerWidget {
   }
 }
 
+/// Perfil público (solo lectura) de otro usuario.
+///
+/// Reutiliza las mismas secciones del perfil propio (identidad, nivel,
+/// estadísticas y distintivos) pero sin acciones de edición, ajustes ni cierre
+/// de sesión. Los datos personales del usuario no se muestran.
+class PerfilUsuarioScreen extends ConsumerWidget {
+  const PerfilUsuarioScreen({super.key, required this.usuarioId});
+
+  final String usuarioId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final perfilAsync = ref.watch(perfilPorIdProvider(usuarioId));
+
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        toolbarHeight: 68,
+        titleSpacing: 0,
+        backgroundColor: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        title: Text(
+          perfilAsync.value == null ? 'Perfil' : '@${perfilAsync.value!.alias}',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: AppColors.ugYellow.withValues(alpha: 0.25),
+          ),
+        ),
+      ),
+      body: perfilAsync.when(
+        data: (perfil) {
+          if (perfil == null) {
+            return const _PerfilMensaje(
+              icono: Icons.person_off_outlined,
+              texto: 'No encontramos este perfil.',
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              _HeroPerfil(
+                perfil: perfil,
+                nivel: nivelDesdePuntos(perfil.puntos),
+              ),
+              const SizedBox(height: 16),
+              _GridEstadisticas(usuarioId: perfil.id),
+              const SizedBox(height: 20),
+              _Distintivos(usuarioId: perfil.id),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => const _PerfilMensaje(
+          icono: Icons.wifi_off_outlined,
+          texto: 'No se pudo cargar el perfil. Revisa tu conexión.',
+        ),
+      ),
+    );
+  }
+}
+
+/// Mensaje centrado para los estados vacío y error del perfil público.
+class _PerfilMensaje extends StatelessWidget {
+  const _PerfilMensaje({required this.icono, required this.texto});
+
+  final IconData icono;
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icono, size: 40, color: AppColors.outline),
+            const SizedBox(height: 12),
+            Text(
+              texto,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Tarjeta principal de identidad con nivel y progreso hacia el siguiente.
 class _HeroPerfil extends StatelessWidget {
   const _HeroPerfil({required this.perfil, required this.nivel});

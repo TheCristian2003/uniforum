@@ -6,7 +6,6 @@ import '../core/theme/app_colors.dart';
 import '../core/theme/app_theme.dart';
 import '../core/widgets/message_card.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/shell/presentation/main_shell.dart';
 
 /// Raíz de la aplicación.
@@ -58,9 +57,6 @@ class _AuthGate extends ConsumerWidget {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
-        }
-        if (perfil.needsOnboarding) {
-          return OnboardingScreen(perfil: perfil);
         }
         return MainShell(perfil: perfil);
       },

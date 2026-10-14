@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/auth/roles.dart';
+import '../../../core/gamification/niveles.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/estilo_publicacion.dart';
 import '../../../core/utils/fecha_relativa.dart';
 import '../../../data/models/catalogo_item.dart';
 import '../../../data/models/publicacion.dart';
@@ -57,11 +59,11 @@ class _MiniaturaBytes extends StatelessWidget {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: Image.memory(
             bytes,
-            width: 110,
-            height: 110,
+            width: 96,
+            height: 96,
             fit: BoxFit.cover,
           ),
         ),
@@ -69,7 +71,7 @@ class _MiniaturaBytes extends StatelessWidget {
           top: 2,
           right: 2,
           child: Material(
-            color: Colors.black54,
+            color: AppColors.ugRed,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -97,11 +99,11 @@ class _MiniaturaUrl extends StatelessWidget {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: Image.network(
             url,
-            width: 110,
-            height: 110,
+            width: 96,
+            height: 96,
             fit: BoxFit.cover,
           ),
         ),
@@ -109,7 +111,7 @@ class _MiniaturaUrl extends StatelessWidget {
           top: 2,
           right: 2,
           child: Material(
-            color: Colors.black54,
+            color: AppColors.ugRed,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -145,7 +147,7 @@ class _Seccion extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant),
+        border: Border.all(color: AppColors.ugBlue.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,6 +169,415 @@ class _Seccion extends StatelessWidget {
           ...children,
         ],
       ),
+    );
+  }
+}
+
+/// Etiqueta en mayúsculas sobre un campo, con acción opcional a la derecha.
+class _Etiqueta extends StatelessWidget {
+  const _Etiqueta(this.texto, {this.accion});
+
+  final String texto;
+  final Widget? accion;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6, left: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            texto.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+              color: AppColors.outline,
+            ),
+          ),
+          if (accion != null) accion!,
+        ],
+      ),
+    );
+  }
+}
+
+/// Chip de selección de tipo de publicación (carrusel horizontal).
+class _ChipTipo extends StatelessWidget {
+  const _ChipTipo({
+    required this.estilo,
+    required this.nombre,
+    required this.seleccionado,
+    required this.onTap,
+  });
+
+  final EstiloTipo estilo;
+  final String nombre;
+  final bool seleccionado;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: seleccionado
+          ? AppColors.ugOcre.withValues(alpha: 0.18)
+          : AppColors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: seleccionado
+                  ? AppColors.ugOcre
+                  : AppColors.ugBlue.withValues(alpha: 0.12),
+              width: seleccionado ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: estilo.color,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(estilo.icono, size: 15, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                nombre,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: seleccionado ? FontWeight.w700 : FontWeight.w600,
+                  color: seleccionado
+                      ? const Color(0xFF644400)
+                      : AppColors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tarjeta del Copiloto IA (maqueta visual; aún sin backend en esta pantalla).
+class _TarjetaIA extends StatelessWidget {
+  const _TarjetaIA({required this.onAccion});
+
+  final VoidCallback onAccion;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.ugOcre.withValues(alpha: 0.16),
+            AppColors.surfaceContainerLowest,
+            AppColors.ugBlue.withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.ugOcre.withValues(alpha: 0.6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.ugOcre,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  size: 18,
+                  color: Color(0xFF1B1D28),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Flexible(
+                          child: Text(
+                            'Copiloto IA de Redacción',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.ugBlue,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'UNIGUAJIRA AI',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Pule tu redacción, mejora el título y sugiere etiquetas.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.25,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _ChipIA(icono: Icons.bolt, texto: 'Mejorar título', onTap: onAccion),
+              _ChipIA(
+                icono: Icons.format_list_bulleted,
+                texto: 'Organizar en puntos',
+                onTap: onAccion,
+              ),
+              _ChipIA(icono: Icons.sell_outlined, texto: 'Sugerir tags', onTap: onAccion),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.ugBlue.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.tips_and_updates_outlined,
+                    size: 16, color: AppColors.ugBlue),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'El Copiloto IA estará disponible próximamente.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChipIA extends StatelessWidget {
+  const _ChipIA({
+    required this.icono,
+    required this.texto,
+    required this.onTap,
+  });
+
+  final IconData icono;
+  final String texto;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.outlineVariant),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icono, size: 13, color: AppColors.ugBlue),
+              const SizedBox(width: 5),
+              Text(
+                texto,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Fila con las acciones rápidas para adjuntar contenido (solo Foto activo).
+class _BotonAdjuntar extends StatelessWidget {
+  const _BotonAdjuntar({
+    required this.icono,
+    required this.texto,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icono;
+  final String texto;
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 84,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.outlineVariant),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icono, size: 20, color: color),
+              const SizedBox(height: 4),
+              Text(
+                texto,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AvatarPerfil extends StatelessWidget {
+  const _AvatarPerfil({
+    required this.alias,
+    required this.avatarUrl,
+    required this.nivel,
+  });
+
+  final String alias;
+  final String? avatarUrl;
+  final int nivel;
+
+  @override
+  Widget build(BuildContext context) {
+    final recortado = alias.trim();
+    final inicial = recortado.isEmpty
+        ? '?'
+        : String.fromCharCode(recortado.runes.first).toUpperCase();
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.ugOcre, width: 2),
+            color: AppColors.ugBlueLight,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: (avatarUrl != null && avatarUrl!.isNotEmpty)
+              ? Image.network(
+                  avatarUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Center(
+                    child: Text(
+                      inicial,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ugBlue,
+                      ),
+                    ),
+                  ),
+                )
+              : Center(
+                  child: Text(
+                    inicial,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ugBlue,
+                    ),
+                  ),
+                ),
+        ),
+        Positioned(
+          bottom: -4,
+          right: -4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: AppColors.ugOcre,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              'Nv $nivel',
+              style: const TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1B1D28),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -197,6 +608,7 @@ class _CrearPublicacionScreenState
   bool _anonimo = false;
   bool _disponible = true;
   bool _entregado = false;
+  bool _mostrarErrorTipo = false;
   DateTime? _fecha;
   DateTime? _inicio;
   DateTime? _fin;
@@ -285,6 +697,10 @@ class _CrearPublicacionScreenState
         .showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
+  void _proximamente() {
+    _mostrarError('Esta función estará disponible próximamente.');
+  }
+
   Future<DateTime?> _seleccionarFecha({bool conHora = false}) async {
     final fecha = await showDatePicker(
       context: context,
@@ -303,12 +719,17 @@ class _CrearPublicacionScreenState
   }
 
   Future<void> _publicar() async {
-    if (!_formKey.currentState!.validate()) return;
     final restriccion = ref.read(miRestriccionActivaProvider).value;
     if (restriccion != null && restriccion.vigente) {
       _mostrarError('Tu cuenta está restringida: no puedes publicar.');
       return;
     }
+    if (_tipoId == null) {
+      setState(() => _mostrarErrorTipo = true);
+      _mostrarError('Selecciona el tipo de publicación.');
+      return;
+    }
+    if (!_formKey.currentState!.validate()) return;
     final canalId = _canalId;
     final tipoId = _tipoId;
     final categoriaId = _categoriaId;
@@ -430,6 +851,11 @@ class _CrearPublicacionScreenState
     return tipos.where((t) => t.id == _tipoId).cast<CatalogoItem?>().firstOrNull;
   }
 
+  String? _nombrePorId(List<CatalogoItem> items, int? id) {
+    if (id == null) return null;
+    return items.where((e) => e.id == id).map((e) => e.nombre).firstOrNull;
+  }
+
   @override
   Widget build(BuildContext context) {
     final canalesAsync = ref.watch(canalesProvider);
@@ -442,22 +868,89 @@ class _CrearPublicacionScreenState
     }).toList();
     final tipoSel = _tipoSeleccionado();
 
+    final perfil = ref.watch(perfilActualProvider).value;
+    final sedes = ref.watch(catalogoProvider('sede')).value ?? [];
+    final programas = ref.watch(catalogoProvider('programa')).value ?? [];
+    final sedeNombre = _nombrePorId(sedes, perfil?.sedeId);
+    final programaNombre = _nombrePorId(programas, perfil?.programaId);
+    final nivel = nivelDesdePuntos(perfil?.puntos ?? 0).numero;
+
     final totalImgs = _existentes.length + _nuevas.length;
     final puedeAnadir = totalImgs < 3;
+    final tituloPantalla =
+        _editando ? 'Editar publicación' : 'Nueva publicación';
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text(_editando ? 'Editar publicación' : 'Nueva publicación'),
+        toolbarHeight: 68,
         backgroundColor: AppColors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        titleSpacing: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              tituloPantalla,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (!_editando) ...[
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.ugBlueLight,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      size: 13,
+                      color: AppColors.ugBlue,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      sedeNombre == null ? 'Campus' : 'Sede $sedeNombre',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                        color: AppColors.ugBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _BotonPublicar(
+              etiqueta: _editando ? 'Guardar' : 'Publicar',
+              enviando: _enviando,
+              onPressed: _publicar,
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugYellow.withValues(alpha: 0.25),
+            color: AppColors.ugBlue.withValues(alpha: 0.12),
           ),
         ),
       ),
@@ -501,14 +994,51 @@ class _CrearPublicacionScreenState
                   ),
                   const SizedBox(height: 16),
                 ],
+                const _Etiqueta('Tipo de publicación'),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  child: Row(
+                    children: [
+                      for (final t in tiposFiltrados) ...[
+                        _ChipTipo(
+                          estilo: estiloTipo(t.codigo),
+                          nombre: t.nombre,
+                          seleccionado: t.id == _tipoId,
+                          onTap: _editando
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _tipoId = t.id;
+                                    _mostrarErrorTipo = false;
+                                    if (t.codigo != 'venta') _disponible = true;
+                                  });
+                                },
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                ),
+                if (_mostrarErrorTipo) ...[
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Selecciona el tipo de publicación.',
+                    style: TextStyle(fontSize: 12, color: AppColors.ugRed),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                _TarjetaIA(onAccion: _proximamente),
+                const SizedBox(height: 16),
                 _Seccion(
                   titulo: 'Clasificación',
                   icono: Icons.tune,
                   children: [
+                    const _Etiqueta('Canal de destino'),
                     DropdownButtonFormField<String>(
                       value: _canalId,
                       decoration: const InputDecoration(
-                        labelText: 'Canal',
+                        hintText: 'Selecciona un canal',
                         prefixIcon: Icon(Icons.forum_outlined),
                       ),
                       items: canalesAsync.when(
@@ -530,40 +1060,11 @@ class _CrearPublicacionScreenState
                           v == null ? 'Selecciona un canal' : null,
                     ),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<int>(
-                      value: _tipoId,
-                      decoration: const InputDecoration(
-                        labelText: 'Tipo',
-                        prefixIcon: Icon(Icons.category_outlined),
-                      ),
-                      items: tiposAsync.when(
-                        data: (_) => tiposFiltrados
-                            .map(
-                              (t) => DropdownMenuItem(
-                                value: t.id,
-                                child: Text(t.nombre),
-                              ),
-                            )
-                            .toList(),
-                        loading: () => [],
-                        error: (_, _) => [],
-                      ),
-                      onChanged: _editando
-                          ? null
-                          : (v) {
-                              setState(() => _tipoId = v);
-                              if (tipoSel?.codigo != 'venta') {
-                                _disponible = true;
-                              }
-                            },
-                      validator: (v) =>
-                          v == null ? 'Selecciona un tipo' : null,
-                    ),
-                    const SizedBox(height: 12),
+                    const _Etiqueta('Categoría'),
                     DropdownButtonFormField<int>(
                       value: _categoriaId,
                       decoration: const InputDecoration(
-                        labelText: 'Categoría',
+                        hintText: 'Selecciona una categoría',
                         prefixIcon: Icon(Icons.label_outline),
                       ),
                       items: categoriasAsync.when(
@@ -591,47 +1092,60 @@ class _CrearPublicacionScreenState
                   titulo: 'Tu publicación',
                   icono: Icons.edit_note,
                   children: [
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _tituloController,
+                      builder: (context, valor, _) => _Etiqueta(
+                        'Título (opcional)',
+                        accion: Text(
+                          '${valor.text.runes.length} / 120',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.outline,
+                          ),
+                        ),
+                      ),
+                    ),
                     TextFormField(
                       controller: _tituloController,
+                      maxLength: 120,
+                      buildCounter: (
+                        _, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) => null,
                       decoration: const InputDecoration(
-                        labelText: 'Título (opcional)',
+                        hintText: 'Título claro y descriptivo',
                         prefixIcon: Icon(Icons.title_outlined),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 4),
+                    const _Etiqueta('Contenido'),
                     TextFormField(
                       controller: _cuerpoController,
                       minLines: 4,
                       maxLines: 8,
                       decoration: const InputDecoration(
-                        labelText: 'Contenido',
+                        hintText:
+                            'Comparte tu duda, información relevante o anuncio...',
                         alignLabelWithHint: true,
                       ),
                       validator: (v) => (v == null || v.trim().isEmpty)
                           ? 'Escribe el contenido de tu publicación'
                           : null,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _anonimo,
-                          onChanged: (v) =>
-                              setState(() => _anonimo = v ?? false),
-                        ),
-                        const Expanded(child: Text('Publicar como anónimo')),
-                      ],
-                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 _Seccion(
-                  titulo: 'Imágenes (máx. 3)',
-                  icono: Icons.photo_library_outlined,
+                  titulo: 'Adjuntar al contenido',
+                  icono: Icons.attach_file,
                   children: [
+                    const _Etiqueta('Imágenes (máx. 3)'),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         for (final url in _existentes)
                           _MiniaturaUrl(
@@ -645,12 +1159,11 @@ class _CrearPublicacionScreenState
                             onQuitar: () => setState(() => _nuevas.remove(img)),
                           ),
                         if (puedeAnadir)
-                          ActionChip(
-                            avatar: const Icon(
-                              Icons.add_photo_alternate_outlined,
-                            ),
-                            label: const Text('Añadir imagen'),
-                            onPressed: _elegirImagenes,
+                          _BotonAdjuntar(
+                            icono: Icons.add_photo_alternate_outlined,
+                            texto: 'Foto',
+                            color: AppColors.ugBlue,
+                            onTap: _elegirImagenes,
                           ),
                       ],
                     ),
@@ -685,11 +1198,14 @@ class _CrearPublicacionScreenState
                       ),
                       const SizedBox(height: 12),
                       if (_editando)
-                        SwitchListTile.adaptive(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('Disponible'),
-                          value: _disponible,
-                          onChanged: (v) => setState(() => _disponible = v),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Disponible'),
+                            value: _disponible,
+                            onChanged: (v) => setState(() => _disponible = v),
+                          ),
                         )
                       else
                         const Text(
@@ -763,13 +1279,15 @@ class _CrearPublicacionScreenState
                             : null,
                       ),
                       const SizedBox(height: 12),
-                      SwitchListTile.adaptive(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Entregado'),
-                        value: _entregado,
-                        onChanged: (v) => setState(() => _entregado = v),
-                      ),
-                    ],
+                      Material(
+                        type: MaterialType.transparency,
+                        child: SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Entregado'),
+                          value: _entregado,
+                          onChanged: (v) => setState(() => _entregado = v),
+                        ),
+                      ),                    ],
                   ),
                 ],
                 if (tipoSel?.codigo == 'evento') ...[
@@ -832,19 +1350,142 @@ class _CrearPublicacionScreenState
                     ],
                   ),
                 ],
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: _enviando ? null : _publicar,
-                    icon: _enviando
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send_outlined),
-                    label: Text(_editando ? 'Guardar cambios' : 'Publicar'),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.ugBlue.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.visibility_off_outlined,
+                            size: 20,
+                            color: AppColors.ugBlue,
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Publicar de forma anónima',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Tu nombre y avatar se ocultarán en el feed.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.outline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch.adaptive(
+                            value: _anonimo,
+                            activeTrackColor: AppColors.ugBlue,
+                            onChanged: (v) => setState(() => _anonimo = v),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      const Divider(height: 1, color: AppColors.outlineVariant),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _AvatarPerfil(
+                            alias: perfil?.alias ?? 'Usuario',
+                            avatarUrl: _anonimo ? null : perfil?.avatarUrl,
+                            nivel: nivel,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _anonimo ? 'Anónimo' : (perfil?.alias ?? 'Usuario'),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  [
+                                    if (programaNombre != null) programaNombre,
+                                    if (sedeNombre != null) 'Sede $sedeNombre',
+                                  ].join(' • '),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.outline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.ugOcre.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.ugOcre.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: const Column(
+                              children: [
+                                Text(
+                                  '+2 EXP',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF644400),
+                                  ),
+                                ),
+                                Text(
+                                  'al publicar',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      'Al publicar aceptas las Normas de Convivencia Uniguajira. '
+                      'Tu aporte fortalece el campus digital.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.35,
+                        color: AppColors.outline,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -852,6 +1493,83 @@ class _CrearPublicacionScreenState
           ),
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLowest,
+            border: Border(
+              top: BorderSide(color: AppColors.ugBlue.withValues(alpha: 0.12)),
+            ),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: 'Añadir foto',
+                onPressed: puedeAnadir ? _elegirImagenes : null,
+                icon: const Icon(Icons.image_outlined),
+                color: AppColors.ugBlue,
+              ),
+              IconButton(
+                tooltip: 'Sugerir etiquetas (próximamente)',
+                onPressed: _proximamente,
+                icon: const Icon(Icons.sell_outlined),
+                color: AppColors.ugBlue,
+              ),
+              IconButton(
+                tooltip: 'Copiloto IA (próximamente)',
+                onPressed: _proximamente,
+                icon: const Icon(Icons.auto_awesome),
+                color: AppColors.ugOcre,
+              ),
+              const Spacer(),
+              _BotonPublicar(
+                etiqueta: _editando ? 'Guardar cambios' : 'Publicar ahora',
+                enviando: _enviando,
+                onPressed: _publicar,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón dorado principal (cabecera y barra inferior).
+class _BotonPublicar extends StatelessWidget {
+  const _BotonPublicar({
+    required this.etiqueta,
+    required this.enviando,
+    required this.onPressed,
+  });
+
+  final String etiqueta;
+  final bool enviando;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      onPressed: enviando ? null : onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.ugOcre,
+        foregroundColor: const Color(0xFF1B1D28),
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+      ),
+      child: enviando
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(etiqueta),
     );
   }
 }

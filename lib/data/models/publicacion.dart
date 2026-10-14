@@ -27,6 +27,7 @@ class Publicacion {
     this.autorAlias,
     this.autorAvatarUrl,
     this.autorVerificada = false,
+    this.autorPuntos,
   });
 
   final String id;
@@ -56,6 +57,9 @@ class Publicacion {
   final String? autorAlias;
   final String? autorAvatarUrl;
   final bool autorVerificada;
+
+  /// Puntos de reputación del autor; `null` en publicaciones anónimas.
+  final int? autorPuntos;
 
   /// Texto corto de la categoría o, si falta, del tipo.
   String get etiquetaCategoria => categoriaNombre ?? tipoNombre ?? 'General';
@@ -116,6 +120,7 @@ class Publicacion {
       autorAvatarUrl: anonimo ? null : autor?['avatar_url'] as String?,
       autorVerificada:
           !anonimo && ((autor?['es_verificada'] as bool?) ?? false),
+      autorPuntos: anonimo ? null : autor?['puntos'] as int?,
     );
   }
 }

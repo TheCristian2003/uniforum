@@ -50,20 +50,53 @@ class AuthController extends Notifier<AuthFormState> {
     }
   }
 
+  /// Crea la cuenta y envía alias, tipo de perfil, programa y sede en los
+  /// metadatos del usuario. El trigger `crear_perfil_auth_user` de la base de
+  /// datos usa esos datos para crear el perfil.
+  ///
   /// Devuelve `true` si la sesión quedó activa; `false` si falta confirmar el
   /// correo (según la configuración de Auth del proyecto).
-  Future<bool> signUp({required String email, required String password}) async {
+  Future<bool> signUp({
+    required String email,
+    required String password,
+    required String alias,
+    required int tipoPerfilId,
+    int? programaId,
+    int? sedeId,
+  }) async {
     state = const AuthFormState(status: AuthStatus.loading);
     try {
-      final response = await ref
-          .read(authRepositoryProvider)
-          .signUp(email: email, password: password);
+      final response = await ref.read(authRepositoryProvider).signUp(
+            email: email,
+            password: password,
+            data: {
+              'alias': alias.trim(),
+              'tipo_perfil_id': tipoPerfilId,
+              'programa_id': programaId,
+              'sede_id': sedeId,
+            },
+          );
       if (response.session == null) {
         state = const AuthFormState(
           status: AuthStatus.success,
           message: 'Revisa tu correo para confirmar la cuenta.',
         );
         return false;
+      }
+      final userId = response.user?.id;
+      if (userId != null) {
+        try {
+          await ref.read(perfilRepositoryProvider).updatePerfil(
+                id: userId,
+                alias: alias,
+                tipoPerfilId: tipoPerfilId,
+                programaId: programaId,
+                sedeId: sedeId,
+              );
+        } catch (_) {
+          // El trigger ya crea el perfil con estos datos; este guardado es un
+          // respaldo por si la migración aún no está aplicada.
+        }
       }
       state = const AuthFormState(status: AuthStatus.success);
       return true;

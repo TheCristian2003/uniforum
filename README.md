@@ -88,9 +88,10 @@ están en `supabase/tests/integrity_and_rls_test.sql` y se ejecutan contra una
 instancia de desarrollo.
 
 Las credenciales se mantienen fuera del repositorio en archivos `.env` locales.
-El alias inicial creado para una cuenta de Auth es temporal y el cliente deberá
-reemplazarlo durante el onboarding. La explicación de permisos y decisiones
-pendientes está en `docs/decisions.md`.
+Al registrarse, el cliente envía el nombre/alias, el tipo de perfil y el
+programa/sede en los metadatos del usuario; el trigger `crear_perfil_auth_user`
+crea el perfil con esos datos (y usa un alias temporal solo si faltan). La
+explicación de permisos y decisiones pendientes está en `docs/decisions.md`.
 
 ### Reglas importantes del esquema
 

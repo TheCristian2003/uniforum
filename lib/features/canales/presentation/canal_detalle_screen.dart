@@ -8,6 +8,7 @@ import '../../../core/utils/icono_canal.dart';
 import '../../../core/widgets/estado_view.dart';
 import '../../../data/models/canal.dart';
 import '../../feed/presentation/widgets/publicacion_card.dart';
+import '../../perfil/presentation/perfil_screen.dart';
 import '../../publicaciones/presentation/publicacion_detalle_screen.dart';
 
 /// Detalle de un canal: cabecera de la comunidad y sus publicaciones.
@@ -28,6 +29,7 @@ class CanalDetalleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final publicaciones = ref.watch(publicacionesDeCanalProvider(canal.id));
+    final miId = ref.watch(currentUserProvider)?.id;
     final tipos = ref.watch(catalogoProvider('tipo_canal')).value ?? const [];
     String? tipoCodigo;
     for (final tipo in tipos) {
@@ -78,6 +80,18 @@ class CanalDetalleScreen extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
+                                onTapAutor:
+                                    (publicacion.anonimo ||
+                                        publicacion.autorId == null ||
+                                        publicacion.autorId == miId)
+                                    ? null
+                                    : () => Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => PerfilUsuarioScreen(
+                                            usuarioId: publicacion.autorId!,
+                                          ),
+                                        ),
+                                      ),
                               ),
                             ),
                         ],

@@ -83,6 +83,12 @@ final perfilActualProvider = FutureProvider<Perfil?>((ref) async {
   return ref.watch(perfilRepositoryProvider).fetchById(user.id);
 });
 
+/// Perfil público de cualquier usuario (solo lectura). Los datos personales
+/// (`celular`, `fecha_nacimiento`) solo llegan si es el propio perfil.
+final perfilPorIdProvider = FutureProvider.family<Perfil?, String>((ref, id) {
+  return ref.watch(perfilRepositoryProvider).fetchById(id);
+});
+
 /// Catálogo de `maestra` para un `grupo` concreto.
 final catalogoProvider =
     FutureProvider.family<List<CatalogoItem>, String>((ref, grupo) {

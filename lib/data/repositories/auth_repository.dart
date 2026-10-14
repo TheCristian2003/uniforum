@@ -26,10 +26,12 @@ class AuthRepository {
   Future<AuthResponse> signUp({
     required String email,
     required String password,
+    Map<String, dynamic>? data,
   }) {
     return _client.auth.signUp(
       email: email.trim(),
       password: password,
+      data: data,
     );
   }
 

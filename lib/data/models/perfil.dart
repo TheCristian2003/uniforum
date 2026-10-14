@@ -11,6 +11,8 @@ class Perfil {
     this.esVerificada = false,
     this.nombreOficial,
     this.puntos = 0,
+    this.celular,
+    this.fechaNacimiento,
   });
 
   final String id;
@@ -24,12 +26,17 @@ class Perfil {
   final String? nombreOficial;
   final int puntos;
 
+  /// Datos personales opcionales. No son obligatorios para usar la app.
+  final String? celular;
+  final DateTime? fechaNacimiento;
+
   /// Un alias con el patrón temporal `usuario_<8 hex>` indica que el onboarding
   /// aún no se completó. El trigger de base de datos crea ese alias inicial.
   bool get needsOnboarding =>
       RegExp(r'^usuario_[0-9a-fA-F]{8}$').hasMatch(alias);
 
   factory Perfil.fromJson(Map<String, dynamic> json) {
+    final fecha = json['fecha_nacimiento'] as String?;
     return Perfil(
       id: json['id'] as String,
       alias: json['alias'] as String,
@@ -41,6 +48,8 @@ class Perfil {
       esVerificada: (json['es_verificada'] as bool?) ?? false,
       nombreOficial: json['nombre_oficial'] as String?,
       puntos: (json['puntos'] as int?) ?? 0,
+      celular: json['celular'] as String?,
+      fechaNacimiento: fecha == null ? null : DateTime.tryParse(fecha),
     );
   }
 }

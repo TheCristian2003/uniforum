@@ -43,16 +43,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nueva publicación'), findsOneWidget);
-    expect(find.text('Canal'), findsOneWidget);
-    expect(find.text('Tipo'), findsOneWidget);
-    expect(find.text('Categoría'), findsOneWidget);
-    expect(find.text('Título (opcional)'), findsOneWidget);
-    expect(find.text('Contenido'), findsOneWidget);
+    expect(find.text('TIPO DE PUBLICACIÓN'), findsOneWidget);
+    expect(find.text('CANAL DE DESTINO'), findsOneWidget);
+    expect(find.text('CATEGORÍA'), findsOneWidget);
+    expect(find.text('TÍTULO (OPCIONAL)'), findsOneWidget);
+    expect(find.text('CONTENIDO'), findsOneWidget);
     expect(find.text('Publicar'), findsOneWidget);
   });
 
   testWidgets('valida que el contenido no esté vacío', (tester) async {
     await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Discusión'));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('Publicar'));
@@ -69,9 +72,8 @@ void main() {
 
     expect(find.text('Precio (COP)'), findsNothing);
 
-    await tester.tap(find.byType(DropdownButtonFormField<int>).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Venta').last);
+    await tester.ensureVisible(find.text('Venta'));
+    await tester.tap(find.text('Venta'));
     await tester.pumpAndSettle();
 
     expect(find.text('Precio (COP)'), findsOneWidget);
