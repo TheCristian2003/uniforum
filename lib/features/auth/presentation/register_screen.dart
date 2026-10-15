@@ -95,7 +95,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onTap: () => Navigator.of(context).pop(),
                     ),
                     const Spacer(),
-                    const _PillInstitucional(),
                   ],
                 ),
               ),
@@ -351,6 +350,7 @@ class _TarjetaRegistro extends StatelessWidget {
                 )
                 .toList(),
             onChanged: onPrograma,
+            onClear: () => onPrograma(null),
           ),
           const SizedBox(height: 14),
           CampoAuthDropdown(
@@ -367,6 +367,7 @@ class _TarjetaRegistro extends StatelessWidget {
                 )
                 .toList(),
             onChanged: onSede,
+            onClear: () => onSede(null),
           ),
           const SizedBox(height: 14),
           CampoAuth(
@@ -535,57 +536,3 @@ class _BotonCircular extends StatelessWidget {
   }
 }
 
-class _PillInstitucional extends StatelessWidget {
-  const _PillInstitucional();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.outlineVariant),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.ugRed,
-            ),
-          ),
-          const SizedBox(width: 6),
-          const Text(
-            'Portal Campus',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-              color: AppColors.ugBlue,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.ugRedLight,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: const Text(
-              'NUEVO',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ugRed,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

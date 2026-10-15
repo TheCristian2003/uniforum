@@ -66,63 +66,22 @@ class _Orbe extends StatelessWidget {
   }
 }
 
-/// Marca institucional compartida por login y registro.
-///
-/// Evita fijar el nombre comercial (pendiente) y usa un identificador neutro.
+/// Marca Vybe compartida por login y registro.
 class MarcaCampus extends StatelessWidget {
   const MarcaCampus({super.key, this.badgeDorado = false});
 
-  /// En registro la insignia tiene fondo dorado degradado.
+  /// No usado con el nuevo logo; se mantiene por compatibilidad API.
+  @Deprecated('No usado con branding Vybe')
   final bool badgeDorado;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _InsigniaCampus(dorado: badgeDorado),
-        const SizedBox(height: 14),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Campus',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: AppColors.ugBlue,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 6,
-              height: 6,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.ugRed,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.ugBlueLight,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: AppColors.ugRed.withValues(alpha: 0.25),
-                ),
-              ),
-              child: const Text(
-                'UNIVERSIDAD',
-                style: TextStyle(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                  color: AppColors.ugBlue,
-                ),
-              ),
-            ),
-          ],
+        Image.asset(
+          'assets/branding/vybe_logo.png',
+          height: 64,
+          fit: BoxFit.contain,
         ),
         const SizedBox(height: 3),
         const Text(
@@ -130,97 +89,6 @@ class MarcaCampus extends StatelessWidget {
           style: TextStyle(fontSize: 12.5, color: AppColors.onSurfaceVariant),
         ),
       ],
-    );
-  }
-}
-
-class _InsigniaCampus extends StatelessWidget {
-  const _InsigniaCampus({required this.dorado});
-
-  final bool dorado;
-
-  @override
-  Widget build(BuildContext context) {
-    final lado = dorado ? 64.0 : 56.0;
-    return SizedBox(
-      width: lado + 8,
-      height: lado + 8,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: lado,
-            height: lado,
-            decoration: BoxDecoration(
-              color: dorado ? null : AppColors.surfaceContainerLowest,
-              gradient: dorado
-                  ? const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFF2AE1C),
-                        Color(0xFFF7C044),
-                        Color(0xFFFDE047),
-                      ],
-                    )
-                  : null,
-              borderRadius: BorderRadius.circular(dorado ? 20 : 18),
-              border: Border.all(
-                color: dorado ? Colors.white : AppColors.outlineVariant,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.ugOcre.withValues(alpha: 0.30),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Icon(
-                Icons.wb_sunny_rounded,
-                size: lado * 0.55,
-                color: dorado ? Colors.white : AppColors.ugOcre,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: dorado
-                    ? AppColors.ugBlue
-                    : AppColors.surfaceContainerLowest,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: Icon(
-                Icons.school_rounded,
-                size: 12,
-                color: dorado ? Colors.white : AppColors.ugRed,
-              ),
-            ),
-          ),
-          if (dorado)
-            Positioned(
-              top: 2,
-              right: 2,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.ugRed,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
@@ -343,6 +211,7 @@ class CampoAuthDropdown extends StatelessWidget {
     this.validator,
     this.requerido = false,
     this.placeholder = 'Selecciona una opción',
+    this.onClear,
   });
 
   final String label;
@@ -353,6 +222,9 @@ class CampoAuthDropdown extends StatelessWidget {
   final FormFieldValidator<int?>? validator;
   final bool requerido;
   final String placeholder;
+
+  /// Si se define, muestra un botón para volver a dejar el campo vacío.
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
@@ -382,6 +254,35 @@ class CampoAuthDropdown extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ugRed,
+                ),
+              ),
+            ],
+            if (onClear != null && valor != null) ...[
+              const Spacer(),
+              InkWell(
+                onTap: onClear,
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      SizedBox(width: 3),
+                      Text(
+                        'Limpiar',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

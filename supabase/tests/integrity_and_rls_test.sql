@@ -254,6 +254,9 @@ begin
   if has_column_privilege('authenticated', 'public.publicaciones', 'puntaje', 'UPDATE') then
     perform pg_temp.fail('authenticated NO deberia poder actualizar puntaje');
   end if;
+  if not has_table_privilege('anon', 'public.maestra', 'SELECT') then
+    perform pg_temp.fail('anon deberia poder leer maestra para el registro');
+  end if;
 end $$;
 
 -- ============================================================

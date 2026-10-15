@@ -279,7 +279,12 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
             ref.watch(catalogoProvider('sede')).isLoading;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        16,
+        20,
+        28 + MediaQuery.of(context).padding.bottom,
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -707,6 +712,7 @@ class _DatosPerfil extends StatelessWidget {
                   )
                   .toList(),
               onChanged: onPrograma,
+              onClear: () => onPrograma(null),
             ),
             const SizedBox(height: 16),
             CampoAuthDropdown(
@@ -723,6 +729,7 @@ class _DatosPerfil extends StatelessWidget {
                   )
                   .toList(),
               onChanged: onSede,
+              onClear: () => onSede(null),
             ),
           ],
           const SizedBox(height: 16),

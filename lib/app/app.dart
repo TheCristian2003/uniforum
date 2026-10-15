@@ -19,7 +19,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Plataforma Social Universitaria',
+      title: 'Vybe',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       home: configured ? const _AuthGate() : const _ConfigMissingScreen(),
@@ -46,8 +46,28 @@ class _AuthGate extends ConsumerWidget {
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: MessageCard(
-              texto: 'No se pudo cargar tu perfil. Reinicia la aplicación.',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const MessageCard(
+                  texto: 'No se pudo cargar tu perfil.',
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '$error',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => ref.invalidate(perfilActualProvider),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Reintentar'),
+                ),
+              ],
             ),
           ),
         ),

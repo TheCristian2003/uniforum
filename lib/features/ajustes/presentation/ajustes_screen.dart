@@ -82,7 +82,12 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          16,
+          20,
+          32 + MediaQuery.of(context).padding.bottom,
+        ),
         children: [
           if (perfil != null)
             _ResumenUsuario(
