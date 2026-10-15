@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../data/models/perfil.dart';
 import '../../shell/presentation/widgets/cabecera_perfil.dart';
 
@@ -49,7 +49,7 @@ class _IaScreenState extends State<IaScreen> {
         centerTitle: false,
         toolbarHeight: 68,
         titleSpacing: 16,
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
@@ -68,7 +68,7 @@ class _IaScreenState extends State<IaScreen> {
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugYellow.withValues(alpha: 0.25),
+            color: context.colors.ugYellow.withValues(alpha: 0.25),
           ),
         ),
       ),
@@ -119,29 +119,29 @@ class _HeroIA extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceContainerLowest,
-              AppColors.surfaceContainerLow,
-              AppColors.ugOcreLight,
+              context.colors.surfaceContainerLowest,
+              context.colors.surfaceContainerLow,
+              context.colors.ugOcreLight,
             ],
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.ugYellow.withValues(alpha: 0.4)),
+          border: Border.all(color: context.colors.ugYellow.withValues(alpha: 0.4)),
         ),
         child: Stack(
           children: [
             Positioned(
               top: -40,
               right: -40,
-              child: _orbe(150, AppColors.ugYellow.withValues(alpha: 0.22)),
+              child: _orbe(150, context.colors.ugYellow.withValues(alpha: 0.22)),
             ),
             Positioned(
               bottom: -50,
               left: -40,
-              child: _orbe(130, AppColors.ugBlue.withValues(alpha: 0.12)),
+              child: _orbe(130, context.colors.ugBlue.withValues(alpha: 0.12)),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -165,23 +165,23 @@ class _HeroIA extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Pregúntame por las publicaciones, avisos, eventos y '
                     'objetos perdidos de tus canales.',
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.4,
-                      color: AppColors.onSurfaceVariant,
+                      color: context.colors.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'ACCIONES RÁPIDAS SUGERIDAS',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.6,
-                      color: AppColors.outline,
+                      color: context.colors.outline,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -224,12 +224,12 @@ class _OrbeIA extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.ugYellow, AppColors.ugYellowDark],
+                colors: [context.colors.ugYellow, context.colors.ugYellowDark],
               ),
             ),
             child: const Center(
@@ -243,10 +243,10 @@ class _OrbeIA extends StatelessWidget {
               width: 15,
               height: 15,
               decoration: BoxDecoration(
-                color: AppColors.ugRed,
+                color: context.colors.ugRed,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.surfaceContainerLowest,
+                  color: context.colors.surfaceContainerLowest,
                   width: 2,
                 ),
               ),
@@ -269,9 +269,9 @@ class _EstadoIA extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.ugOcreLight,
+          color: context.colors.ugOcreLight,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppColors.ugYellow.withValues(alpha: 0.4)),
+          border: Border.all(color: context.colors.ugYellow.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -285,7 +285,7 @@ class _EstadoIA extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Flexible(
+            Flexible(
               child: Text(
                 'IA del Campus · En línea',
                 overflow: TextOverflow.ellipsis,
@@ -293,7 +293,7 @@ class _EstadoIA extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.ugYellowDark,
+                  color: context.colors.ugYellowDark,
                 ),
               ),
             ),
@@ -317,21 +317,33 @@ class _Sugerencias extends StatelessWidget {
 
   final ValueChanged<String> onSugerencia;
 
-  static const _items = [
-    _Sugerencia('¿Qué me perdí esta semana?', Icons.bolt, AppColors.ugRed),
-    _Sugerencia('Resumen de un canal', Icons.topic_outlined, AppColors.ugBlue),
-    _Sugerencia('Buscar un tema', Icons.manage_search, AppColors.ugBlue),
-    _Sugerencia(
-      'Avisos importantes',
-      Icons.campaign_outlined,
-      AppColors.ugRed,
-    ),
-    _Sugerencia(
-      'Objetos perdidos',
-      Icons.search_off_outlined,
-      AppColors.ugYellowDark,
-    ),
-  ];
+  static List<_Sugerencia> _items(BuildContext context) => [
+        _Sugerencia(
+          '¿Qué me perdí esta semana?',
+          Icons.bolt,
+          context.colors.ugRed,
+        ),
+        _Sugerencia(
+          'Resumen de un canal',
+          Icons.topic_outlined,
+          context.colors.ugBlue,
+        ),
+        _Sugerencia(
+          'Buscar un tema',
+          Icons.manage_search,
+          context.colors.ugBlue,
+        ),
+        _Sugerencia(
+          'Avisos importantes',
+          Icons.campaign_outlined,
+          context.colors.ugRed,
+        ),
+        _Sugerencia(
+          'Objetos perdidos',
+          Icons.search_off_outlined,
+          context.colors.ugYellowDark,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -339,7 +351,7 @@ class _Sugerencias extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          for (final item in _items)
+          for (final item in _items(context))
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: _ChipSugerencia(
@@ -362,7 +374,7 @@ class _ChipSugerencia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainerLowest,
+      color: context.colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
         onTap: onTap,
@@ -372,7 +384,7 @@ class _ChipSugerencia extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: AppColors.ugYellow.withValues(alpha: 0.4),
+              color: context.colors.ugYellow.withValues(alpha: 0.4),
             ),
           ),
           child: Row(
@@ -382,10 +394,10 @@ class _ChipSugerencia extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 item.texto,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.onSurface,
+                  color: context.colors.onSurface,
                 ),
               ),
             ],
@@ -403,7 +415,7 @@ class _EncabezadoConversacion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.forum_outlined, size: 20, color: AppColors.onSurface),
+        Icon(Icons.forum_outlined, size: 20, color: context.colors.onSurface),
         const SizedBox(width: 8),
         const Text(
           'Conversación',
@@ -413,15 +425,15 @@ class _EncabezadoConversacion extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: AppColors.ugYellow.withValues(alpha: 0.18),
+            color: context.colors.ugYellow.withValues(alpha: 0.18),
             borderRadius: BorderRadius.circular(999),
           ),
-          child: const Text(
+          child: Text(
             'Nueva',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: AppColors.ugYellowDark,
+              color: context.colors.ugYellowDark,
             ),
           ),
         ),
@@ -439,10 +451,10 @@ class _Bienvenida extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+          color: context.colors.outlineVariant.withValues(alpha: 0.4),
         ),
       ),
       child: Column(
@@ -451,14 +463,14 @@ class _Bienvenida extends StatelessWidget {
             width: 64,
             height: 64,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: AppColors.ugOcreLight,
+            decoration: BoxDecoration(
+              color: context.colors.ugOcreLight,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.auto_awesome,
               size: 30,
-              color: AppColors.ugYellowDark,
+              color: context.colors.ugYellowDark,
             ),
           ),
           const SizedBox(height: 14),
@@ -468,14 +480,14 @@ class _Bienvenida extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Escribe tu pregunta o toca una acción rápida. Aquí verás mis '
             'respuestas junto con las publicaciones que las respaldan.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
               height: 1.4,
-              color: AppColors.onSurfaceVariant,
+              color: context.colors.onSurfaceVariant,
             ),
           ),
         ],
@@ -500,18 +512,18 @@ class _ConsolaIA extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        border: Border(top: BorderSide(color: AppColors.outlineVariant)),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerLowest,
+        border: Border(top: BorderSide(color: context.colors.outlineVariant)),
       ),
       child: Row(
         children: [
-          _botonIcono(Icons.attach_file, 'Adjuntar'),
+          _botonIcono(context, Icons.attach_file, 'Adjuntar'),
           const SizedBox(width: 6),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLow,
+                color: context.colors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: TextField(
@@ -521,9 +533,9 @@ class _ConsolaIA extends StatelessWidget {
                 maxLines: 5,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onEnviar(),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Pregunta sobre clases, canales o trámites…',
-                  hintStyle: TextStyle(color: AppColors.outline, fontSize: 14),
+                  hintStyle: TextStyle(color: context.colors.outline, fontSize: 14),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 14,
@@ -534,7 +546,7 @@ class _ConsolaIA extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          _botonIcono(Icons.mic_none, 'Dictar por voz'),
+          _botonIcono(context, Icons.mic_none, 'Dictar por voz'),
           const SizedBox(width: 6),
           _BotonEnviar(onTap: onEnviar),
         ],
@@ -542,7 +554,7 @@ class _ConsolaIA extends StatelessWidget {
     );
   }
 
-  Widget _botonIcono(IconData icono, String tooltip) {
+  Widget _botonIcono(BuildContext context, IconData icono, String tooltip) {
     return Material(
       color: Colors.transparent,
       shape: const CircleBorder(),
@@ -553,7 +565,7 @@ class _ConsolaIA extends StatelessWidget {
           message: tooltip,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Icon(icono, size: 22, color: AppColors.onSurfaceVariant),
+            child: Icon(icono, size: 22, color: context.colors.onSurfaceVariant),
           ),
         ),
       ),
@@ -569,7 +581,7 @@ class _BotonEnviar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.ugRed,
+      color: context.colors.ugRed,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,

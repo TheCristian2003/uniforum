@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/estado_view.dart';
 import '../../../data/models/perfil.dart';
 import '../../../data/models/publicacion.dart';
@@ -87,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         centerTitle: false,
         toolbarHeight: 68,
         titleSpacing: 16,
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
@@ -106,7 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugYellow.withValues(alpha: 0.25),
+            color: context.colors.ugYellow.withValues(alpha: 0.25),
           ),
         ),
       ),
@@ -249,12 +249,12 @@ class _ChipFiltro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorTexto = activo ? AppColors.onPrimary : AppColors.onSurface;
+    final colorTexto = activo ? context.colors.onPrimary : context.colors.onSurface;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Material(
-        color: activo ? AppColors.ugYellow : AppColors.surfaceContainerHigh,
+        color: activo ? context.colors.ugYellow : context.colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(999),
         child: InkWell(
           onTap: onTap,
@@ -265,8 +265,8 @@ class _ChipFiltro extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: activo
-                    ? AppColors.ugYellow
-                    : AppColors.outlineVariant.withValues(alpha: 0.5),
+                    ? context.colors.ugYellow
+                    : context.colors.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
             child: Row(
@@ -305,18 +305,18 @@ class _BannerIA extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceContainerLowest,
-              AppColors.surfaceContainerLow,
-              AppColors.ugOcreLight,
+              context.colors.surfaceContainerLowest,
+              context.colors.surfaceContainerLow,
+              context.colors.ugOcreLight,
             ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.ugYellow.withValues(alpha: 0.4),
+            color: context.colors.ugYellow.withValues(alpha: 0.4),
           ),
         ),
         child: Stack(
@@ -324,12 +324,12 @@ class _BannerIA extends StatelessWidget {
             Positioned(
               top: -40,
               right: -40,
-              child: _orbe(150, AppColors.ugYellow.withValues(alpha: 0.22)),
+              child: _orbe(150, context.colors.ugYellow.withValues(alpha: 0.22)),
             ),
             Positioned(
               bottom: -50,
               left: -40,
-              child: _orbe(130, AppColors.ugBlue.withValues(alpha: 0.12)),
+              child: _orbe(130, context.colors.ugBlue.withValues(alpha: 0.12)),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -338,9 +338,9 @@ class _BannerIA extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Flexible(child: _insignia()),
+                      Flexible(child: _insignia(context)),
                       const SizedBox(width: 8),
-                      _sincronizado(),
+                      _sincronizado(context),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -349,13 +349,13 @@ class _BannerIA extends StatelessWidget {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Horarios, cupos en biblioteca, eventos y resúmenes '
                     'de asambleas al instante.',
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.35,
-                      color: AppColors.onSurfaceVariant,
+                      color: context.colors.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -367,8 +367,8 @@ class _BannerIA extends StatelessWidget {
                           child: _AccionIA(
                             icono: Icons.bolt,
                             etiqueta: '¿Qué me perdí?',
-                            colorIcono: AppColors.ugRed,
-                            fondoIcono: AppColors.ugRedLight,
+                            colorIcono: context.colors.ugRed,
+                            fondoIcono: context.colors.ugRedLight,
                             onTap: onAccion,
                           ),
                         ),
@@ -377,7 +377,7 @@ class _BannerIA extends StatelessWidget {
                           child: _AccionIA(
                             icono: Icons.chat_bubble_outline,
                             etiqueta: 'Preguntar a IA',
-                            colorIcono: AppColors.onPrimary,
+                            colorIcono: context.colors.onPrimary,
                             fondoIcono: Colors.black12,
                             destacado: true,
                             onTap: onAccion,
@@ -388,8 +388,8 @@ class _BannerIA extends StatelessWidget {
                           child: _AccionIA(
                             icono: Icons.manage_search,
                             etiqueta: 'Buscar con IA',
-                            colorIcono: AppColors.ugBlue,
-                            fondoIcono: AppColors.ugBlueLight,
+                            colorIcono: context.colors.ugBlue,
+                            fondoIcono: context.colors.ugBlueLight,
                             onTap: onAccion,
                           ),
                         ),
@@ -405,31 +405,31 @@ class _BannerIA extends StatelessWidget {
     );
   }
 
-  Widget _insignia() {
+  Widget _insignia(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.ugOcreLight,
+        color: context.colors.ugOcreLight,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.ugYellow.withValues(alpha: 0.3)),
+        border: Border.all(color: context.colors.ugYellow.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.auto_awesome,
             size: 14,
-            color: AppColors.ugYellowDark,
+            color: context.colors.ugYellowDark,
           ),
           const SizedBox(width: 6),
-          const Text(
+          Text(
             'IA del Campus activa',
             overflow: TextOverflow.ellipsis,
             softWrap: false,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
-              color: AppColors.ugYellowDark,
+              color: context.colors.ugYellowDark,
             ),
           ),
         ],
@@ -437,7 +437,7 @@ class _BannerIA extends StatelessWidget {
     );
   }
 
-  Widget _sincronizado() {
+  Widget _sincronizado(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -450,12 +450,12 @@ class _BannerIA extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        const Text(
+        Text(
           'Sincronizado',
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: AppColors.onSurfaceVariant,
+            color: context.colors.onSurfaceVariant,
           ),
         ),
       ],
@@ -495,10 +495,10 @@ class _AccionIA extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorTexto = destacado ? AppColors.onPrimary : AppColors.onSurface;
+    final colorTexto = destacado ? context.colors.onPrimary : context.colors.onSurface;
 
     return Material(
-      color: destacado ? AppColors.ugYellow : AppColors.surfaceContainerLowest,
+      color: destacado ? context.colors.ugYellow : context.colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -510,7 +510,7 @@ class _AccionIA extends StatelessWidget {
             border: destacado
                 ? null
                 : Border.all(
-                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                    color: context.colors.outlineVariant.withValues(alpha: 0.5),
                   ),
           ),
           child: Column(

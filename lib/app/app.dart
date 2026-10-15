@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/providers.dart';
-import '../core/theme/app_colors.dart';
+import '../core/theme/app_palette.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/theme_controller.dart';
 import '../core/widgets/message_card.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/shell/presentation/main_shell.dart';
@@ -11,17 +12,20 @@ import '../features/shell/presentation/main_shell.dart';
 /// Raíz de la aplicación.
 ///
 /// El nombre comercial sigue pendiente; el título usa un texto genérico.
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   const App({super.key, this.configured = true});
 
   final bool configured;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modo = ref.watch(themeControllerProvider);
     return MaterialApp(
       title: 'Vybe',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: modo,
       home: configured ? const _AuthGate() : const _ConfigMissingScreen(),
     );
   }
@@ -56,9 +60,9 @@ class _AuthGate extends ConsumerWidget {
                 Text(
                   '$error',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -95,8 +99,8 @@ class _ConfigMissingScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.settings, size: 40, color: AppColors.ugYellow),
+            children: [
+              Icon(Icons.settings, size: 40, color: context.colors.ugYellow),
               SizedBox(height: 12),
               Text(
                 'Configuración pendiente',
@@ -106,7 +110,7 @@ class _ConfigMissingScreen extends StatelessWidget {
               Text(
                 'Falta SUPABASE_URL y SUPABASE_ANON_KEY. Copia .env.example a .env y completa los valores de desarrollo.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: context.colors.onSurfaceVariant),
               ),
             ],
           ),

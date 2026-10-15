@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/auth_widgets.dart';
 import '../../../core/widgets/message_card.dart';
 import '../../../data/models/catalogo_item.dart';
@@ -81,7 +81,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final errorCarga = tipos.hasError || programas.hasError || sedes.hasError;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: FondoAuth(
         child: SafeArea(
           child: Column(
@@ -109,22 +109,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         children: [
                           const MarcaCampus(badgeDorado: true),
                           const SizedBox(height: 18),
-                          const Text(
+                          Text(
                             'Crear cuenta',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.onSurface,
+                              color: context.colors.onSurface,
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
+                          Text(
                             'Únete a la comunidad universitaria',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12.5,
-                              color: AppColors.onSurfaceVariant,
+                              color: context.colors.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -246,10 +246,10 @@ class _TarjetaRegistro extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.6),
+          color: context.colors.outlineVariant.withValues(alpha: 0.6),
         ),
         boxShadow: [
           BoxShadow(
@@ -431,18 +431,18 @@ class _TarjetaRegistro extends StatelessWidget {
                             onAcepta(value ?? false);
                             state.didChange(value ?? false);
                           },
-                          activeColor: AppColors.ugBlue,
+                          activeColor: context.colors.ugBlue,
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Acepto los Términos de Servicio y la Política de '
                           'Tratamiento de Datos de la Universidad de La Guajira.',
                           style: TextStyle(
                             fontSize: 12,
                             height: 1.35,
-                            color: AppColors.onSurfaceVariant,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -452,9 +452,9 @@ class _TarjetaRegistro extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       state.errorText!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
-                        color: AppColors.ugRed,
+                        color: context.colors.ugRed,
                       ),
                     ),
                   ],
@@ -485,20 +485,20 @@ class _TarjetaRegistro extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 '¿Ya tienes una cuenta?',
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                 ),
               ),
               TextButton(
                 onPressed: authState.isLoading ? null : onSalir,
-                child: const Text(
+                child: Text(
                   'Iniciar sesión',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.ugRed,
+                    color: context.colors.ugRed,
                   ),
                 ),
               ),
@@ -519,9 +519,9 @@ class _BotonCircular extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainerLowest,
-      shape: const CircleBorder(
-        side: BorderSide(color: AppColors.outlineVariant),
+      color: context.colors.surfaceContainerLowest,
+      shape: CircleBorder(
+        side: BorderSide(color: context.colors.outlineVariant),
       ),
       child: InkWell(
         onTap: onTap,
@@ -529,7 +529,7 @@ class _BotonCircular extends StatelessWidget {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icono, size: 22, color: AppColors.onSurface),
+          child: Icon(icono, size: 22, color: context.colors.onSurface),
         ),
       ),
     );

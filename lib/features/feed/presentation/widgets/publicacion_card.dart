@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../../../core/utils/estilo_publicacion.dart';
 import '../../../../core/utils/fecha_relativa.dart';
 import '../../../../data/models/publicacion.dart';
@@ -29,16 +29,16 @@ class PublicacionCard extends StatelessWidget {
     final alias = publicacion.anonimo
         ? 'Anónimo'
         : (publicacion.autorAlias ?? 'Usuario');
-    final tipo = estiloTipo(publicacion.tipoCodigo);
+    final tipo = estiloTipo(context, publicacion.tipoCodigo);
     final precio = publicacion.metadatos.precio;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withValues(alpha: 0.06),
+            color: context.colors.outline.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -55,7 +55,7 @@ class PublicacionCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               border: Border.all(
-                color: AppColors.outlineVariant.withValues(alpha: 0.45),
+                color: context.colors.outlineVariant.withValues(alpha: 0.45),
               ),
             ),
             child: Column(
@@ -107,7 +107,7 @@ class PublicacionCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                        color: context.colors.outlineVariant.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -186,10 +186,10 @@ class _Cabecera extends StatelessWidget {
                   ),
                   if (verificada) ...[
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       Icons.verified,
                       size: 15,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                     ),
                   ],
                   if (canalNombre != null) ...[
@@ -202,9 +202,9 @@ class _Cabecera extends StatelessWidget {
               Text(
                 fechaRelativa(creadoEn),
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                 ),
               ),
             ],
@@ -230,17 +230,17 @@ class _ChipCanal extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.ugBlue.withValues(alpha: 0.12),
+        color: context.colors.ugBlue.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         texto,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 9.5,
           fontWeight: FontWeight.w700,
-          color: AppColors.ugBlue,
+          color: context.colors.ugBlue,
         ),
       ),
     );
@@ -294,9 +294,9 @@ class _Precio extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.ugOcre.withValues(alpha: 0.18),
+        color: context.colors.ugOcre.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.ugOcre.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.ugOcre.withValues(alpha: 0.5)),
       ),
       child: Text(
         '\$${numeroCorto(valor)} $moneda',
@@ -322,10 +322,10 @@ class _PillVotos extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.7),
+          color: context.colors.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
       child: Row(
@@ -336,10 +336,10 @@ class _PillVotos extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Text(
               texto,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
+                color: context.colors.onSurface,
               ),
             ),
           ),
@@ -359,7 +359,7 @@ class _IconoVoto extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(4),
-      child: Icon(icono, size: 18, color: AppColors.onSurfaceVariant),
+      child: Icon(icono, size: 18, color: context.colors.onSurfaceVariant),
     );
   }
 }
@@ -375,18 +375,18 @@ class _AccionComentario extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
+        Icon(
           Icons.chat_bubble_outline,
           size: 18,
-          color: AppColors.onSurfaceVariant,
+          color: context.colors.onSurfaceVariant,
         ),
         const SizedBox(width: 5),
         Text(
           '$valor',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.onSurfaceVariant,
+            color: context.colors.onSurfaceVariant,
           ),
         ),
       ],
@@ -406,17 +406,17 @@ class _Avatar extends StatelessWidget {
     final tieneImagen = imagen != null && imagen!.isNotEmpty;
     return CircleAvatar(
       radius: 18,
-      backgroundColor: AppColors.ugBlueLight,
+      backgroundColor: context.colors.ugBlueLight,
       backgroundImage: tieneImagen ? NetworkImage(imagen!) : null,
       child: tieneImagen
           ? null
           : (anonimo
-                ? const Icon(Icons.person, color: AppColors.ugBlue)
+                ? Icon(Icons.person, color: context.colors.ugBlue)
                 : Text(
                     alias.isNotEmpty ? alias[0].toUpperCase() : '?',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                     ),
                   )),
     );

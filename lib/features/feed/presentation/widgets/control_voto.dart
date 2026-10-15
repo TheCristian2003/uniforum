@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Control de voto reutilizable (arriba / puntaje / abajo).
 ///
@@ -32,13 +32,13 @@ class ControlVoto extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
         color: miVoto == null
-            ? AppColors.surfaceContainerLow
-            : (votoPositivo ? AppColors.ugBlueLight : AppColors.ugRedLight),
+            ? context.colors.surfaceContainerLow
+            : (votoPositivo ? context.colors.ugBlueLight : context.colors.ugRedLight),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: votoPositivo
-              ? AppColors.ugBlue
-              : (votoNegativo ? AppColors.ugRed : AppColors.outlineVariant),
+              ? context.colors.ugBlue
+              : (votoNegativo ? context.colors.ugRed : context.colors.outlineVariant),
         ),
       ),
       child: Row(
@@ -47,7 +47,7 @@ class ControlVoto extends StatelessWidget {
           _BotonVoto(
             icono: Icons.arrow_upward,
             activo: votoPositivo,
-            colorActivo: AppColors.ugBlue,
+            colorActivo: context.colors.ugBlue,
             onTap: habilitado ? () => onVotar(1) : null,
             tooltip: 'Votar a favor',
           ),
@@ -58,15 +58,15 @@ class ControlVoto extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 color: votoPositivo
-                    ? AppColors.ugBlue
-                    : (votoNegativo ? AppColors.ugRed : AppColors.onSurface),
+                    ? context.colors.ugBlue
+                    : (votoNegativo ? context.colors.ugRed : context.colors.onSurface),
               ),
             ),
           ),
           _BotonVoto(
             icono: Icons.arrow_downward,
             activo: votoNegativo,
-            colorActivo: AppColors.ugRed,
+            colorActivo: context.colors.ugRed,
             onTap: habilitado ? () => onVotar(-1) : null,
             tooltip: 'Votar en contra',
           ),
@@ -111,8 +111,8 @@ class _BotonVoto extends StatelessWidget {
             color: activo
                 ? Colors.white
                 : (onTap == null
-                    ? AppColors.outlineVariant
-                    : AppColors.onSurfaceVariant),
+                    ? context.colors.outlineVariant
+                    : context.colors.onSurfaceVariant),
           ),
         ),
       ),

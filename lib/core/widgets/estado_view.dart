@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Indicador de carga a pantalla completa reutilizable.
 class LoadingView extends StatelessWidget {
@@ -19,7 +19,7 @@ class LoadingView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               mensaje!,
-              style: const TextStyle(color: AppColors.onSurfaceVariant),
+              style: TextStyle(color: context.colors.onSurfaceVariant),
             ),
           ],
         ],
@@ -57,11 +57,11 @@ class EmptyView extends StatelessWidget {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: AppColors.ugBlueLight,
+              decoration: BoxDecoration(
+                color: context.colors.ugBlueLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icono, size: 34, color: AppColors.ugBlue),
+              child: Icon(icono, size: 34, color: context.colors.ugBlue),
             ),
             const SizedBox(height: 16),
             Text(
@@ -74,7 +74,7 @@ class EmptyView extends StatelessWidget {
               Text(
                 mensaje!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: context.colors.onSurfaceVariant),
               ),
             ],
             if (etiquetaAccion != null && onAccion != null) ...[
@@ -114,21 +114,21 @@ class ErrorView extends StatelessWidget {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: AppColors.ugRedLight,
+              decoration: BoxDecoration(
+                color: context.colors.ugRedLight,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.error_outline,
                 size: 34,
-                color: AppColors.ugRed,
+                color: context.colors.ugRed,
               ),
             ),
             const SizedBox(height: 16),
             Text(
               mensaje,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.onSurfaceVariant),
+              style: TextStyle(color: context.colors.onSurfaceVariant),
             ),
             if (onReintentar != null) ...[
               const SizedBox(height: 16),

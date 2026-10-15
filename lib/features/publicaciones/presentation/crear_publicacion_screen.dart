@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/auth/roles.dart';
 import '../../../core/gamification/niveles.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/estilo_publicacion.dart';
 import '../../../core/utils/fecha_relativa.dart';
 import '../../../data/models/catalogo_item.dart';
@@ -71,7 +71,7 @@ class _MiniaturaBytes extends StatelessWidget {
           top: 2,
           right: 2,
           child: Material(
-            color: AppColors.ugRed,
+            color: context.colors.ugRed,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -111,7 +111,7 @@ class _MiniaturaUrl extends StatelessWidget {
           top: 2,
           right: 2,
           child: Material(
-            color: AppColors.ugRed,
+            color: context.colors.ugRed,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -145,16 +145,16 @@ class _Seccion extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.ugBlue.withValues(alpha: 0.12)),
+        border: Border.all(color: context.colors.ugBlue.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icono, size: 18, color: AppColors.ugBlue),
+              Icon(icono, size: 18, color: context.colors.ugBlue),
               const SizedBox(width: 8),
               Text(
                 titulo,
@@ -189,11 +189,11 @@ class _Etiqueta extends StatelessWidget {
         children: [
           Text(
             texto.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.6,
-              color: AppColors.outline,
+              color: context.colors.outline,
             ),
           ),
           if (accion != null) accion!,
@@ -221,8 +221,8 @@ class _ChipTipo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: seleccionado
-          ? AppColors.ugOcre.withValues(alpha: 0.18)
-          : AppColors.surfaceContainerLow,
+          ? context.colors.ugOcre.withValues(alpha: 0.18)
+          : context.colors.surfaceContainerLow,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -233,8 +233,8 @@ class _ChipTipo extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: seleccionado
-                  ? AppColors.ugOcre
-                  : AppColors.ugBlue.withValues(alpha: 0.12),
+                  ? context.colors.ugOcre
+                  : context.colors.ugBlue.withValues(alpha: 0.12),
               width: seleccionado ? 2 : 1,
             ),
           ),
@@ -258,7 +258,7 @@ class _ChipTipo extends StatelessWidget {
                   fontWeight: seleccionado ? FontWeight.w700 : FontWeight.w600,
                   color: seleccionado
                       ? const Color(0xFF644400)
-                      : AppColors.onSurface,
+                      : context.colors.onSurface,
                 ),
               ),
             ],
@@ -284,13 +284,13 @@ class _TarjetaIA extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.ugOcre.withValues(alpha: 0.16),
-            AppColors.surfaceContainerLowest,
-            AppColors.ugBlue.withValues(alpha: 0.08),
+            context.colors.ugOcre.withValues(alpha: 0.16),
+            context.colors.surfaceContainerLowest,
+            context.colors.ugBlue.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.ugOcre.withValues(alpha: 0.6)),
+        border: Border.all(color: context.colors.ugOcre.withValues(alpha: 0.6)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +301,7 @@ class _TarjetaIA extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.ugOcre,
+                  color: context.colors.ugOcre,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -333,7 +333,7 @@ class _TarjetaIA extends StatelessWidget {
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.ugBlue,
+                            color: context.colors.ugBlue,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: const Text(
@@ -349,12 +349,12 @@ class _TarjetaIA extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    const Text(
+                    Text(
                       'Pule tu redacción, mejora el título y sugiere etiquetas.',
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.25,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -380,16 +380,16 @@ class _TarjetaIA extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLowest.withValues(alpha: 0.9),
+              color: context.colors.surfaceContainerLowest.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.ugBlue.withValues(alpha: 0.2),
+                color: context.colors.ugBlue.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
-              children: const [
+              children: [
                 Icon(Icons.tips_and_updates_outlined,
-                    size: 16, color: AppColors.ugBlue),
+                    size: 16, color: context.colors.ugBlue),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -397,7 +397,7 @@ class _TarjetaIA extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onSurface,
+                      color: context.colors.onSurface,
                     ),
                   ),
                 ),
@@ -424,7 +424,7 @@ class _ChipIA extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainerLowest,
+      color: context.colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
@@ -433,12 +433,12 @@ class _ChipIA extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.outlineVariant),
+            border: Border.all(color: context.colors.outlineVariant),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icono, size: 13, color: AppColors.ugBlue),
+              Icon(icono, size: 13, color: context.colors.ugBlue),
               const SizedBox(width: 5),
               Text(
                 texto,
@@ -472,7 +472,7 @@ class _BotonAdjuntar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainerLow,
+      color: context.colors.surfaceContainerLow,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -482,7 +482,7 @@ class _BotonAdjuntar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.outlineVariant),
+            border: Border.all(color: context.colors.outlineVariant),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -491,10 +491,10 @@ class _BotonAdjuntar extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 texto,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                 ),
               ),
             ],
@@ -530,8 +530,8 @@ class _AvatarPerfil extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.ugOcre, width: 2),
-            color: AppColors.ugBlueLight,
+            border: Border.all(color: context.colors.ugOcre, width: 2),
+            color: context.colors.ugBlueLight,
           ),
           clipBehavior: Clip.antiAlias,
           child: (avatarUrl != null && avatarUrl!.isNotEmpty)
@@ -541,9 +541,9 @@ class _AvatarPerfil extends StatelessWidget {
                   errorBuilder: (_, _, _) => Center(
                     child: Text(
                       inicial,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.ugBlue,
+                        color: context.colors.ugBlue,
                       ),
                     ),
                   ),
@@ -551,9 +551,9 @@ class _AvatarPerfil extends StatelessWidget {
               : Center(
                   child: Text(
                     inicial,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                     ),
                   ),
                 ),
@@ -564,7 +564,7 @@ class _AvatarPerfil extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
             decoration: BoxDecoration(
-              color: AppColors.ugOcre,
+              color: context.colors.ugOcre,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
@@ -881,10 +881,10 @@ class _CrearPublicacionScreenState
         _editando ? 'Editar publicación' : 'Nueva publicación';
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       appBar: AppBar(
         toolbarHeight: 68,
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
@@ -909,25 +909,25 @@ class _CrearPublicacionScreenState
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.ugBlueLight,
+                  color: context.colors.ugBlueLight,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_on,
                       size: 13,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                     ),
                     const SizedBox(width: 3),
                     Text(
                       sedeNombre == null ? 'Campus' : 'Sede $sedeNombre',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
-                        color: AppColors.ugBlue,
+                        color: context.colors.ugBlue,
                       ),
                     ),
                   ],
@@ -950,7 +950,7 @@ class _CrearPublicacionScreenState
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugBlue.withValues(alpha: 0.12),
+            color: context.colors.ugBlue.withValues(alpha: 0.12),
           ),
         ),
       ),
@@ -966,26 +966,26 @@ class _CrearPublicacionScreenState
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.ugBlueLight,
+                      color: context.colors.ugBlueLight,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.ugBlue.withValues(alpha: 0.25),
+                        color: context.colors.ugBlue.withValues(alpha: 0.25),
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.lock_outline,
                           size: 18,
-                          color: AppColors.ugBlue,
+                          color: context.colors.ugBlue,
                         ),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'No se puede cambiar el canal, tipo ni categoría.',
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.ugBlue,
+                              color: context.colors.ugBlue,
                             ),
                           ),
                         ),
@@ -1002,7 +1002,7 @@ class _CrearPublicacionScreenState
                     children: [
                       for (final t in tiposFiltrados) ...[
                         _ChipTipo(
-                          estilo: estiloTipo(t.codigo),
+                          estilo: estiloTipo(context, t.codigo),
                           nombre: t.nombre,
                           seleccionado: t.id == _tipoId,
                           onTap: _editando
@@ -1022,9 +1022,9 @@ class _CrearPublicacionScreenState
                 ),
                 if (_mostrarErrorTipo) ...[
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Selecciona el tipo de publicación.',
-                    style: TextStyle(fontSize: 12, color: AppColors.ugRed),
+                    style: TextStyle(fontSize: 12, color: context.colors.ugRed),
                   ),
                 ],
                 const SizedBox(height: 16),
@@ -1098,9 +1098,9 @@ class _CrearPublicacionScreenState
                         'Título (opcional)',
                         accion: Text(
                           '${valor.text.runes.length} / 120',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.outline,
+                            color: context.colors.outline,
                           ),
                         ),
                       ),
@@ -1162,7 +1162,7 @@ class _CrearPublicacionScreenState
                           _BotonAdjuntar(
                             icono: Icons.add_photo_alternate_outlined,
                             texto: 'Foto',
-                            color: AppColors.ugBlue,
+                            color: context.colors.ugBlue,
                             onTap: _elegirImagenes,
                           ),
                       ],
@@ -1208,11 +1208,11 @@ class _CrearPublicacionScreenState
                           ),
                         )
                       else
-                        const Text(
+                        Text(
                           'El estado se establecerá como disponible al crear la publicación.',
                           style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.onSurfaceVariant,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -1354,23 +1354,23 @@ class _CrearPublicacionScreenState
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
+                    color: context.colors.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.ugBlue.withValues(alpha: 0.12),
+                      color: context.colors.ugBlue.withValues(alpha: 0.12),
                     ),
                   ),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.visibility_off_outlined,
                             size: 20,
-                            color: AppColors.ugBlue,
+                            color: context.colors.ugBlue,
                           ),
                           const SizedBox(width: 10),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1386,7 +1386,7 @@ class _CrearPublicacionScreenState
                                   'Tu nombre y avatar se ocultarán en el feed.',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.outline,
+                                    color: context.colors.outline,
                                   ),
                                 ),
                               ],
@@ -1394,13 +1394,13 @@ class _CrearPublicacionScreenState
                           ),
                           Switch.adaptive(
                             value: _anonimo,
-                            activeTrackColor: AppColors.ugBlue,
+                            activeTrackColor: context.colors.ugBlue,
                             onChanged: (v) => setState(() => _anonimo = v),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Divider(height: 1, color: AppColors.outlineVariant),
+                      Divider(height: 1, color: context.colors.outlineVariant),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -1427,9 +1427,9 @@ class _CrearPublicacionScreenState
                                     if (programaNombre != null) programaNombre,
                                     if (sedeNombre != null) 'Sede $sedeNombre',
                                   ].join(' • '),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 10,
-                                    color: AppColors.outline,
+                                    color: context.colors.outline,
                                   ),
                                 ),
                               ],
@@ -1441,13 +1441,13 @@ class _CrearPublicacionScreenState
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.ugOcre.withValues(alpha: 0.15),
+                              color: context.colors.ugOcre.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.ugOcre.withValues(alpha: 0.4),
+                                color: context.colors.ugOcre.withValues(alpha: 0.4),
                               ),
                             ),
-                            child: const Column(
+                            child: Column(
                               children: [
                                 Text(
                                   '+2 EXP',
@@ -1461,7 +1461,7 @@ class _CrearPublicacionScreenState
                                   'al publicar',
                                   style: TextStyle(
                                     fontSize: 9,
-                                    color: AppColors.onSurfaceVariant,
+                                    color: context.colors.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -1473,7 +1473,7 @@ class _CrearPublicacionScreenState
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Center(
+                Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
@@ -1483,7 +1483,7 @@ class _CrearPublicacionScreenState
                       style: TextStyle(
                         fontSize: 11,
                         height: 1.35,
-                        color: AppColors.outline,
+                        color: context.colors.outline,
                       ),
                     ),
                   ),
@@ -1498,9 +1498,9 @@ class _CrearPublicacionScreenState
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLowest,
+            color: context.colors.surfaceContainerLowest,
             border: Border(
-              top: BorderSide(color: AppColors.ugBlue.withValues(alpha: 0.12)),
+              top: BorderSide(color: context.colors.ugBlue.withValues(alpha: 0.12)),
             ),
           ),
           child: Row(
@@ -1509,19 +1509,19 @@ class _CrearPublicacionScreenState
                 tooltip: 'Añadir foto',
                 onPressed: puedeAnadir ? _elegirImagenes : null,
                 icon: const Icon(Icons.image_outlined),
-                color: AppColors.ugBlue,
+                color: context.colors.ugBlue,
               ),
               IconButton(
                 tooltip: 'Sugerir etiquetas (próximamente)',
                 onPressed: _proximamente,
                 icon: const Icon(Icons.sell_outlined),
-                color: AppColors.ugBlue,
+                color: context.colors.ugBlue,
               ),
               IconButton(
                 tooltip: 'Copiloto IA (próximamente)',
                 onPressed: _proximamente,
                 icon: const Icon(Icons.auto_awesome),
-                color: AppColors.ugOcre,
+                color: context.colors.ugOcre,
               ),
               const Spacer(),
               _BotonPublicar(
@@ -1554,7 +1554,7 @@ class _BotonPublicar extends StatelessWidget {
     return FilledButton(
       onPressed: enviando ? null : onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.ugOcre,
+        backgroundColor: context.colors.ugOcre,
         foregroundColor: const Color(0xFF1B1D28),
         minimumSize: const Size(0, 44),
         padding: const EdgeInsets.symmetric(horizontal: 16),

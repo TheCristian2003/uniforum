@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/config/app_config.dart';
+import 'core/providers.dart';
+import 'core/services/preferences_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +19,13 @@ Future<void> main() async {
     );
   }
 
+  final preferences = await PreferencesService.create();
+
   runApp(
     ProviderScope(
+      overrides: [
+        preferencesServiceProvider.overrideWithValue(preferences),
+      ],
       child: App(configured: AppConfig.isConfigured),
     ),
   );

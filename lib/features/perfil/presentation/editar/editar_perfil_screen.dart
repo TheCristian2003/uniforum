@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/gamification/niveles.dart';
 import '../../../../core/providers.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/auth_widgets.dart';
 import '../../../../data/models/catalogo_item.dart';
 import '../../../../data/models/perfil.dart';
@@ -187,7 +187,7 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
     if (perfil != null) _cargarDesde(perfil);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: _appBar(),
       body: perfil == null
           ? _cargando(perfilAsync.isLoading)
@@ -197,7 +197,7 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
 
   PreferredSizeWidget _appBar() {
     return AppBar(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: context.colors.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -206,7 +206,7 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
       titleSpacing: 0,
       shape: Border(
         bottom: BorderSide(
-          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+          color: context.colors.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       leadingWidth: 56,
@@ -214,14 +214,14 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
         child: IconButton(
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back),
-          color: AppColors.onSurface,
+          color: context.colors.onSurface,
           tooltip: 'Volver',
           style: IconButton.styleFrom(
-            backgroundColor: AppColors.surfaceContainer,
+            backgroundColor: context.colors.surfaceContainer,
           ),
         ),
       ),
-      title: const Column(
+      title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -235,7 +235,7 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.outline,
+              color: context.colors.outline,
             ),
           ),
         ],
@@ -253,16 +253,16 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.person_off_outlined,
               size: 40,
-              color: AppColors.outline,
+              color: context.colors.outline,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No se pudo cargar tu perfil. Intenta de nuevo más tarde.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.onSurfaceVariant),
+              style: TextStyle(color: context.colors.onSurfaceVariant),
             ),
           ],
         ),
@@ -332,10 +332,10 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
                   : const Icon(Icons.check_circle, size: 20),
               label: Text(_guardando ? 'Guardando...' : 'Guardar cambios'),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.ugOcre,
+                backgroundColor: context.colors.ugOcre,
                 foregroundColor: const Color(0xFF3A2A00),
                 disabledBackgroundColor:
-                    AppColors.ugOcre.withValues(alpha: 0.5),
+                    context.colors.ugOcre.withValues(alpha: 0.5),
                 disabledForegroundColor:
                     const Color(0xFF3A2A00).withValues(alpha: 0.6),
                 minimumSize: const Size.fromHeight(52),
@@ -354,8 +354,8 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
               icon: const Icon(Icons.restart_alt, size: 20),
               label: const Text('Descartar cambios no guardados'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.ugRed,
-                side: const BorderSide(color: AppColors.ugRed),
+                foregroundColor: context.colors.ugRed,
+                side: BorderSide(color: context.colors.ugRed),
                 minimumSize: const Size.fromHeight(52),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -367,10 +367,10 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Row(
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.security, size: 16, color: AppColors.ugBlue),
+                Icon(Icons.security, size: 16, color: context.colors.ugBlue),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -379,7 +379,7 @@ class _EditarPerfilScreenState extends ConsumerState<EditarPerfilScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       height: 1.3,
-                      color: AppColors.outline,
+                      color: context.colors.outline,
                     ),
                   ),
                 ),
@@ -416,14 +416,14 @@ class _TarjetaAvatar extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: context.colors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+            color: context.colors.outlineVariant.withValues(alpha: 0.5),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.outline.withValues(alpha: 0.08),
+              color: context.colors.outline.withValues(alpha: 0.08),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -434,12 +434,12 @@ class _TarjetaAvatar extends StatelessWidget {
             Positioned(
               top: -50,
               right: -50,
-              child: _orbe(160, AppColors.ugOcre.withValues(alpha: 0.20)),
+              child: _orbe(160, context.colors.ugOcre.withValues(alpha: 0.20)),
             ),
             Positioned(
               bottom: -50,
               left: -50,
-              child: _orbe(150, AppColors.ugFlamenco.withValues(alpha: 0.12)),
+              child: _orbe(150, context.colors.ugFlamenco.withValues(alpha: 0.12)),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -457,24 +457,24 @@ class _TarjetaAvatar extends StatelessWidget {
                           width: 112,
                           height: 112,
                           padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                AppColors.ugOcre,
-                                AppColors.ugFlamenco,
-                                AppColors.ugBlue,
+                                context.colors.ugOcre,
+                                context.colors.ugFlamenco,
+                                context.colors.ugBlue,
                               ],
                             ),
                           ),
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.surfaceContainerLowest,
+                              color: context.colors.surfaceContainerLowest,
                               border: Border.all(
-                                color: AppColors.surfaceContainerLowest,
+                                color: context.colors.surfaceContainerLowest,
                                 width: 2,
                               ),
                             ),
@@ -485,13 +485,13 @@ class _TarjetaAvatar extends StatelessWidget {
                                         avatarUrl,
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, _, _) =>
-                                            _inicial(perfil.alias),
+                                            _inicial(context, perfil.alias),
                                       )
                                     : ValueListenableBuilder<
                                         TextEditingValue>(
                                         valueListenable: aliasListenable,
                                         builder: (_, value, _) =>
-                                            _inicial(value.text),
+                                            _inicial(context, value.text),
                                       ),
                               ),
                             ),
@@ -501,10 +501,10 @@ class _TarjetaAvatar extends StatelessWidget {
                           bottom: 0,
                           right: 4,
                           child: Material(
-                            color: AppColors.ugFlamenco,
+                            color: context.colors.ugFlamenco,
                             shape: CircleBorder(
                               side: BorderSide(
-                                color: AppColors.surfaceContainerLowest,
+                                color: context.colors.surfaceContainerLowest,
                                 width: 2,
                               ),
                             ),
@@ -539,27 +539,27 @@ class _TarjetaAvatar extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceContainerLowest,
+                              color: context.colors.surfaceContainerLowest,
                               borderRadius: BorderRadius.circular(999),
                               border: Border.all(
-                                color: AppColors.ugOcre.withValues(alpha: 0.5),
+                                color: context.colors.ugOcre.withValues(alpha: 0.5),
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.local_fire_department,
                                   size: 13,
-                                  color: AppColors.ugYellowDark,
+                                  color: context.colors.ugYellowDark,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Nivel ${nivel.numero} • ${nivel.nombre}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.ugYellowDark,
+                                    color: context.colors.ugYellowDark,
                                   ),
                                 ),
                               ],
@@ -588,11 +588,11 @@ class _TarjetaAvatar extends StatelessWidget {
                   Text(
                     'ID Universitario: #UG-${_idCorto(perfil.id)}',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                     ),
                   ),
                 ],
@@ -604,19 +604,19 @@ class _TarjetaAvatar extends StatelessWidget {
     );
   }
 
-  Widget _inicial(String alias) {
+  Widget _inicial(BuildContext context, String alias) {
     final letra = alias.trim().isNotEmpty
         ? alias.trim()[0].toUpperCase()
         : '?';
     return Container(
-      color: AppColors.ugBlueLight,
+      color: context.colors.ugBlueLight,
       alignment: Alignment.center,
       child: Text(
         letra,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 40,
           fontWeight: FontWeight.w800,
-          color: AppColors.ugBlue,
+          color: context.colors.ugBlue,
         ),
       ),
     );
@@ -672,7 +672,7 @@ class _DatosPerfil extends StatelessWidget {
   Widget build(BuildContext context) {
     return _TarjetaSeccion(
       icono: Icons.badge_outlined,
-      color: AppColors.ugBlue,
+      color: context.colors.ugBlue,
       titulo: 'Datos del perfil',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -774,13 +774,13 @@ class _Biografia extends StatelessWidget {
   Widget build(BuildContext context) {
     return _TarjetaSeccion(
       icono: Icons.psychology,
-      color: AppColors.ugOcre,
+      color: context.colors.ugOcre,
       titulo: 'Biografía & Vibra',
       trailing: ValueListenableBuilder<TextEditingValue>(
         valueListenable: bioController,
         builder: (_, value, _) => Text(
           '${value.text.runes.length} / 250',
-          style: const TextStyle(fontSize: 11, color: AppColors.outline),
+          style: TextStyle(fontSize: 11, color: context.colors.outline),
         ),
       ),
       child: TextFormField(
@@ -796,19 +796,19 @@ class _Biografia extends StatelessWidget {
           ),
           counterText: '',
           filled: true,
-          fillColor: AppColors.surfaceContainerLow,
+          fillColor: context.colors.surfaceContainerLow,
           contentPadding: const EdgeInsets.all(14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.outlineVariant),
+            borderSide: BorderSide(color: context.colors.outlineVariant),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.outlineVariant),
+            borderSide: BorderSide(color: context.colors.outlineVariant),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.ugBlue, width: 2),
+            borderSide: BorderSide(color: context.colors.ugBlue, width: 2),
           ),
         ),
       ),
@@ -836,14 +836,14 @@ class _TarjetaSeccion extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+          color: context.colors.outlineVariant.withValues(alpha: 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withValues(alpha: 0.06),
+            color: context.colors.outline.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -895,22 +895,22 @@ class _MensajeError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.ugRedLight,
+        color: context.colors.ugRedLight,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.ugRed.withValues(alpha: 0.35)),
+        border: Border.all(color: context.colors.ugRed.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.error_outline, size: 20, color: AppColors.ugRed),
+          Icon(Icons.error_outline, size: 20, color: context.colors.ugRed),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               texto,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 height: 1.3,
-                color: AppColors.ugRed,
+                color: context.colors.ugRed,
               ),
             ),
           ),

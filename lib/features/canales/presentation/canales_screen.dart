@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/estilo_canal.dart';
 import '../../../core/utils/icono_canal.dart';
 import '../../../core/widgets/estado_view.dart';
@@ -71,7 +71,7 @@ class _CanalesScreenState extends ConsumerState<CanalesScreen> {
         centerTitle: false,
         toolbarHeight: 68,
         titleSpacing: 16,
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
@@ -90,7 +90,7 @@ class _CanalesScreenState extends ConsumerState<CanalesScreen> {
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugYellow.withValues(alpha: 0.25),
+            color: context.colors.ugYellow.withValues(alpha: 0.25),
           ),
         ),
       ),
@@ -192,7 +192,7 @@ class _HeroCanales extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -211,7 +211,7 @@ class _HeroCanales extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             height: 1.35,
-            color: AppColors.onSurfaceVariant,
+            color: context.colors.onSurfaceVariant,
           ),
         ),
       ],
@@ -229,10 +229,10 @@ class _Buscador extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.ugYellow.withValues(alpha: 0.6),
+          color: context.colors.ugYellow.withValues(alpha: 0.6),
         ),
       ),
       child: TextField(
@@ -241,15 +241,15 @@ class _Buscador extends StatelessWidget {
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Buscar canales, facultades, clubes…',
-          hintStyle: const TextStyle(color: AppColors.outline, fontSize: 14),
+          hintStyle: TextStyle(color: context.colors.outline, fontSize: 14),
           prefixIcon:
-              const Icon(Icons.search, color: AppColors.ugYellowDark, size: 22),
+              Icon(Icons.search, color: context.colors.ugYellowDark, size: 22),
           suffixIcon: controller.text.isEmpty
               ? null
               : IconButton(
                   tooltip: 'Limpiar',
                   icon: const Icon(Icons.close, size: 20),
-                  color: AppColors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                   onPressed: () {
                     controller.clear();
                     onCambio('');
@@ -301,12 +301,12 @@ class _ChipFiltro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorTexto = activo ? AppColors.onPrimary : AppColors.onSurface;
+    final colorTexto = activo ? context.colors.onPrimary : context.colors.onSurface;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Material(
-        color: activo ? AppColors.ugYellow : AppColors.surfaceContainerLowest,
+        color: activo ? context.colors.ugYellow : context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(999),
         child: InkWell(
           onTap: onTap,
@@ -317,8 +317,8 @@ class _ChipFiltro extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: activo
-                    ? AppColors.ugYellow
-                    : AppColors.outlineVariant.withValues(alpha: 0.6),
+                    ? context.colors.ugYellow
+                    : context.colors.outlineVariant.withValues(alpha: 0.6),
               ),
             ),
             child: Row(
@@ -360,15 +360,15 @@ class _TituloSeccion extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: AppColors.ugYellow.withValues(alpha: 0.18),
+            color: context.colors.ugYellow.withValues(alpha: 0.18),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
             '$cantidad',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: AppColors.ugYellowDark,
+              color: context.colors.ugYellowDark,
             ),
           ),
         ),
@@ -385,10 +385,10 @@ class _CanalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final estilo = estiloTipoCanal(tipoCodigo);
+    final estilo = estiloTipoCanal(context, tipoCodigo);
 
     return Material(
-      color: AppColors.surfaceContainerLowest,
+      color: context.colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -402,7 +402,7 @@ class _CanalCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.outlineVariant.withValues(alpha: 0.7),
+              color: context.colors.outlineVariant.withValues(alpha: 0.7),
             ),
           ),
           child: Row(
@@ -439,10 +439,10 @@ class _CanalCard extends StatelessWidget {
                         canal.descripcion!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           height: 1.3,
-                          color: AppColors.onSurfaceVariant,
+                          color: context.colors.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -450,9 +450,9 @@ class _CanalCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 12),
-                child: Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                child: Icon(Icons.chevron_right, color: context.colors.onSurfaceVariant),
               ),
             ],
           ),

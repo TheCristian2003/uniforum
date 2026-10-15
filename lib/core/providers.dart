@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'services/preferences_service.dart';
+
 import '../data/models/canal.dart';
 import '../data/models/catalogo_item.dart';
 import '../data/models/comentario.dart';
@@ -21,6 +23,16 @@ import '../data/repositories/perfil_repository.dart';
 import '../data/repositories/publicaciones_repository.dart';
 import '../data/repositories/reportes_repository.dart';
 import '../data/repositories/votos_repository.dart';
+
+/// Preferencias locales persistidas. Se sobrescribe en `main()` con la
+/// instancia cargada de `SharedPreferences`; los tests pueden arrancar sin
+/// almacenamiento definiendo su propia sobrescritura (o un doble en memoria).
+final preferencesServiceProvider = Provider<PreferencesService>((ref) {
+  throw UnimplementedError(
+    'preferencesServiceProvider debe sobrescribirse en ProviderScope '
+    '(ver lib/main.dart).',
+  );
+});
 
 final supabaseClientProvider = Provider<SupabaseClient>(
   (ref) => Supabase.instance.client,

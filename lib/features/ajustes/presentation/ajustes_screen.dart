@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/gamification/niveles.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/services/preferences_service.dart';
+import '../../../core/theme/app_palette.dart';
+import '../../../core/theme/theme_controller.dart';
 import '../../../data/models/catalogo_item.dart';
 import '../../../data/models/perfil.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -23,14 +25,28 @@ class AjustesScreen extends ConsumerStatefulWidget {
 }
 
 class _AjustesScreenState extends ConsumerState<AjustesScreen> {
-  bool _resumenesIA = true;
-  bool _sugerenciasIA = true;
-  bool _alertasInstitucionales = true;
-  bool _actividadPublicaciones = true;
-  bool _radarPerdidos = true;
-  bool _rankingSemanal = true;
-  bool _publicarAnonimo = true;
-  int _tema = 0; // 0: Claro, 1: Oscuro, 2: Sistema
+  late bool _resumenesIA;
+  late bool _sugerenciasIA;
+  late bool _alertasInstitucionales;
+  late bool _actividadPublicaciones;
+  late bool _radarPerdidos;
+  late bool _rankingSemanal;
+  late bool _publicarAnonimo;
+
+  @override
+  void initState() {
+    super.initState();
+    final prefs = ref.read(preferencesServiceProvider);
+    _resumenesIA = prefs.flag(PreferencesService.claveResumenesIA);
+    _sugerenciasIA = prefs.flag(PreferencesService.claveSugerenciasIA);
+    _alertasInstitucionales =
+        prefs.flag(PreferencesService.claveAlertasInstitucionales);
+    _actividadPublicaciones =
+        prefs.flag(PreferencesService.claveActividadPublicaciones);
+    _radarPerdidos = prefs.flag(PreferencesService.claveRadarPerdidos);
+    _rankingSemanal = prefs.flag(PreferencesService.claveRankingSemanal);
+    _publicarAnonimo = prefs.flag(PreferencesService.clavePublicarAnonimo);
+  }
 
   void _proximamente(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -38,17 +54,26 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
     );
   }
 
+  /// Actualiza un switch y persiste su valor en las preferencias locales.
+  ValueChanged<bool> _persistir(String clave, void Function(bool) asignar) {
+    return (valor) {
+      setState(() => asignar(valor));
+      ref.read(preferencesServiceProvider).guardarFlag(clave, valor);
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final modo = ref.watch(themeControllerProvider);
     final perfil = ref.watch(perfilActualProvider).value;
     final email = ref.watch(currentUserProvider)?.email ?? '';
     final sedes = ref.watch(catalogoProvider('sede')).value ?? const [];
     final programas = ref.watch(catalogoProvider('programa')).value ?? const [];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -56,7 +81,7 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
         titleSpacing: 0,
         shape: Border(
           bottom: BorderSide(
-            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+            color: context.colors.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
         leading: Padding(
@@ -107,8 +132,14 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
           _CopilotoIA(
             resumenes: _resumenesIA,
             sugerencias: _sugerenciasIA,
-            onResumenes: (v) => setState(() => _resumenesIA = v),
-            onSugerencias: (v) => setState(() => _sugerenciasIA = v),
+            onResumenes: _persistir(
+              PreferencesService.claveResumenesIA,
+              (v) => _resumenesIA = v,
+            ),
+            onSugerencias: _persistir(
+              PreferencesService.claveSugerenciasIA,
+              (v) => _sugerenciasIA = v,
+            ),
             onProximamente: _proximamente,
           ),
           const SizedBox(height: 24),
@@ -116,9 +147,18 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
             alertas: _alertasInstitucionales,
             actividad: _actividadPublicaciones,
             radar: _radarPerdidos,
-            onAlertas: (v) => setState(() => _alertasInstitucionales = v),
-            onActividad: (v) => setState(() => _actividadPublicaciones = v),
-            onRadar: (v) => setState(() => _radarPerdidos = v),
+            onAlertas: _persistir(
+              PreferencesService.claveAlertasInstitucionales,
+              (v) => _alertasInstitucionales = v,
+            ),
+            onActividad: _persistir(
+              PreferencesService.claveActividadPublicaciones,
+              (v) => _actividadPublicaciones = v,
+            ),
+            onRadar: _persistir(
+              PreferencesService.claveRadarPerdidos,
+              (v) => _radarPerdidos = v,
+            ),
             onProximamente: _proximamente,
           ),
           const SizedBox(height: 24),
@@ -126,14 +166,20 @@ class _AjustesScreenState extends ConsumerState<AjustesScreen> {
             ranking: _rankingSemanal,
             anonimo: _publicarAnonimo,
             puntos: perfil?.puntos ?? 0,
-            onRanking: (v) => setState(() => _rankingSemanal = v),
-            onAnonimo: (v) => setState(() => _publicarAnonimo = v),
+            onRanking: _persistir(
+              PreferencesService.claveRankingSemanal,
+              (v) => _rankingSemanal = v,
+            ),
+            onAnonimo: _persistir(
+              PreferencesService.clavePublicarAnonimo,
+              (v) => _publicarAnonimo = v,
+            ),
             onProximamente: _proximamente,
           ),
           const SizedBox(height: 24),
           _Apariencia(
-            tema: _tema,
-            onTema: (v) => setState(() => _tema = v),
+            tema: modo,
+            onTema: (m) => ref.read(themeControllerProvider.notifier).setModo(m),
             onProximamente: _proximamente,
           ),
           const SizedBox(height: 24),
@@ -161,10 +207,10 @@ class _BotonIcono extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainer,
+      color: context.colors.surfaceContainer,
       shape: CircleBorder(
         side: BorderSide(
-          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+          color: context.colors.outlineVariant.withValues(alpha: 0.4),
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -173,7 +219,7 @@ class _BotonIcono extends StatelessWidget {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icono, size: 22, color: AppColors.ugBlue),
+          child: Icon(icono, size: 22, color: context.colors.ugBlue),
         ),
       ),
     );
@@ -220,14 +266,14 @@ class _ResumenUsuario extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: context.colors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+            color: context.colors.outlineVariant.withValues(alpha: 0.5),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.outline.withValues(alpha: 0.08),
+              color: context.colors.outline.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -238,12 +284,12 @@ class _ResumenUsuario extends StatelessWidget {
             Positioned(
               top: -50,
               right: -50,
-              child: _orbe(160, AppColors.ugOcre.withValues(alpha: 0.20)),
+              child: _orbe(160, context.colors.ugOcre.withValues(alpha: 0.20)),
             ),
             Positioned(
               bottom: -40,
               left: -40,
-              child: _orbe(130, AppColors.ugFlamenco.withValues(alpha: 0.10)),
+              child: _orbe(130, context.colors.ugFlamenco.withValues(alpha: 0.10)),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -264,10 +310,10 @@ class _ResumenUsuario extends StatelessWidget {
                               height: 64,
                               clipBehavior: Clip.antiAlias,
                               decoration: BoxDecoration(
-                                color: AppColors.ugBlueLight,
+                                color: context.colors.ugBlueLight,
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: AppColors.ugBlue,
+                                  color: context.colors.ugBlue,
                                   width: 2,
                                 ),
                               ),
@@ -276,9 +322,9 @@ class _ResumenUsuario extends StatelessWidget {
                                       avatarUrl!,
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, _, _) =>
-                                          _inicial(inicial),
+                                          _inicial(context, inicial),
                                     )
-                                  : _inicial(inicial),
+                                  : _inicial(context, inicial),
                             ),
                             Positioned(
                               right: 0,
@@ -289,10 +335,10 @@ class _ResumenUsuario extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.ugOcre,
+                                  color: context.colors.ugOcre,
                                   borderRadius: BorderRadius.circular(999),
                                   border: Border.all(
-                                    color: AppColors.surfaceContainerLowest,
+                                    color: context.colors.surfaceContainerLowest,
                                     width: 1.5,
                                   ),
                                 ),
@@ -341,10 +387,10 @@ class _ResumenUsuario extends StatelessWidget {
                                 ),
                                 if (perfil.esVerificada) ...[
                                   const SizedBox(width: 4),
-                                  const Icon(
+                                  Icon(
                                     Icons.verified,
                                     size: 17,
-                                    color: AppColors.ugBlue,
+                                    color: context.colors.ugBlue,
                                   ),
                                 ],
                               ],
@@ -355,10 +401,10 @@ class _ResumenUsuario extends StatelessWidget {
                                   ? '@${perfil.alias}'
                                   : '@${perfil.alias} • $programa',
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.onSurfaceVariant,
+                                color: context.colors.onSurfaceVariant,
                               ),
                             ),
                             if (sede.isNotEmpty) ...[
@@ -369,24 +415,24 @@ class _ResumenUsuario extends StatelessWidget {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.ugOcreLight,
+                                  color: context.colors.ugOcreLight,
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.location_on,
                                       size: 13,
-                                      color: AppColors.ugYellowDark,
+                                      color: context.colors.ugYellowDark,
                                     ),
                                     const SizedBox(width: 3),
                                     Text(
                                       sede,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color: AppColors.ugYellowDark,
+                                        color: context.colors.ugYellowDark,
                                       ),
                                     ),
                                   ],
@@ -406,16 +452,16 @@ class _ResumenUsuario extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: context.colors.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.verified,
                             size: 16,
-                            color: AppColors.ugBlue,
+                            color: context.colors.ugBlue,
                           ),
                           const SizedBox(width: 6),
                           Flexible(
@@ -435,7 +481,7 @@ class _ResumenUsuario extends StatelessWidget {
                   const SizedBox(height: 14),
                   Divider(
                     height: 1,
-                    color: AppColors.surfaceContainerHigh,
+                    color: context.colors.surfaceContainerHigh,
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -446,8 +492,8 @@ class _ResumenUsuario extends StatelessWidget {
                           icon: const Icon(Icons.edit, size: 18),
                           label: const Text('Editar perfil'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.ugBlue,
-                            side: const BorderSide(color: AppColors.ugBlue),
+                            foregroundColor: context.colors.ugBlue,
+                            side: BorderSide(color: context.colors.ugBlue),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -460,18 +506,18 @@ class _ResumenUsuario extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Material(
-                        color: AppColors.surfaceContainerLow,
+                        color: context.colors.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(12),
                         child: InkWell(
                           onTap: onQr,
                           borderRadius: BorderRadius.circular(12),
-                          child: const SizedBox(
+                          child: SizedBox(
                             width: 44,
                             height: 44,
                             child: Icon(
                               Icons.qr_code_2,
                               size: 22,
-                              color: AppColors.onSurfaceVariant,
+                              color: context.colors.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -487,16 +533,16 @@ class _ResumenUsuario extends StatelessWidget {
     );
   }
 
-  Widget _inicial(String inicial) {
+  Widget _inicial(BuildContext context, String inicial) {
     return Container(
-      color: AppColors.ugBlueLight,
+      color: context.colors.ugBlueLight,
       alignment: Alignment.center,
       child: Text(
         inicial,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w800,
-          color: AppColors.ugBlue,
+          color: context.colors.ugBlue,
         ),
       ),
     );
@@ -541,9 +587,9 @@ class _CopilotoIA extends StatelessWidget {
             Container(
               width: 9,
               height: 9,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.ugFlamenco,
+                color: context.colors.ugFlamenco,
               ),
             ),
             const SizedBox(width: 8),
@@ -560,20 +606,20 @@ class _CopilotoIA extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.ugFlamencoLight,
+                color: context.colors.ugFlamencoLight,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.auto_awesome, size: 12, color: AppColors.ugFlamenco),
+                  Icon(Icons.auto_awesome, size: 12, color: context.colors.ugFlamenco),
                   SizedBox(width: 3),
                   Text(
                     'IA',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ugFlamenco,
+                      color: context.colors.ugFlamenco,
                     ),
                   ),
                 ],
@@ -587,35 +633,35 @@ class _CopilotoIA extends StatelessWidget {
             children: [
               _FilaToggle(
                 icono: Icons.summarize,
-                color: AppColors.ugFlamenco,
+                color: context.colors.ugFlamenco,
                 titulo: 'Resúmenes semanales de canales',
                 subtitulo: 'Síntesis de tareas y foros estudiantiles',
                 valor: resumenes,
                 onChanged: onResumenes,
               ),
-              _divisor(),
+              _divisor(context),
               _FilaNav(
                 icono: Icons.psychology,
-                color: AppColors.ugOcre,
+                color: context.colors.ugOcre,
                 titulo: 'Personalidad del asistente',
                 subtitulo: 'Adapta el tono y modismos en respuestas',
                 etiqueta: 'Cercano',
                 onTap: () =>
                     onProximamente('La personalidad del asistente estará disponible pronto.'),
               ),
-              _divisor(),
+              _divisor(context),
               _FilaToggle(
                 icono: Icons.auto_fix_high,
-                color: AppColors.ugOcre,
+                color: context.colors.ugOcre,
                 titulo: 'Sugerencias al crear publicaciones',
                 subtitulo: 'Optimiza etiquetas y hashtags del campus',
                 valor: sugerencias,
                 onChanged: onSugerencias,
               ),
-              _divisor(),
+              _divisor(context),
               _FilaNav(
                 icono: Icons.delete_sweep,
-                color: AppColors.ugRed,
+                color: context.colors.ugRed,
                 titulo: 'Borrar memoria de conversaciones',
                 subtitulo: 'Reinicia el contexto privado del copiloto',
                 onTap: () =>
@@ -657,34 +703,34 @@ class _Notificaciones extends StatelessWidget {
           children: [
             _FilaToggle(
               icono: Icons.notifications_active,
-              color: AppColors.ugBlue,
+              color: context.colors.ugBlue,
               titulo: 'Alertas institucionales y académicas',
               subtitulo: 'Avisos de rectoría, cancelaciones, notas oficiales',
               valor: alertas,
               onChanged: onAlertas,
             ),
-            _divisor(),
+            _divisor(context),
             _FilaToggle(
               icono: Icons.favorite,
-              color: AppColors.ugFlamenco,
+              color: context.colors.ugFlamenco,
               titulo: 'Actividad en mis publicaciones',
               subtitulo: 'Puntos (+EXP), votos y respuestas',
               valor: actividad,
               onChanged: onActividad,
             ),
-            _divisor(),
+            _divisor(context),
             _FilaToggle(
               icono: Icons.radar,
-              color: AppColors.ugOcre,
+              color: context.colors.ugOcre,
               titulo: 'Radar de objetos perdidos',
               subtitulo: 'Avisos de carnés o llaves cerca de tu facultad',
               valor: radar,
               onChanged: onRadar,
             ),
-            _divisor(),
+            _divisor(context),
             _FilaNav(
               icono: Icons.storefront,
-              color: AppColors.onSurfaceVariant,
+              color: context.colors.onSurfaceVariant,
               titulo: 'Novedades de compra y venta',
               subtitulo: 'Libros, calculadoras y servicios del campus',
               etiqueta: 'Solo menciones',
@@ -724,26 +770,26 @@ class _Privacidad extends StatelessWidget {
           children: [
             _FilaToggle(
               icono: Icons.leaderboard,
-              color: AppColors.ugOcre,
+              color: context.colors.ugOcre,
               titulo: 'Ranking semanal del campus',
               subtitulo: 'Tu perfil compite por el podio de aportes',
               extra: '$puntos pts',
               valor: ranking,
               onChanged: onRanking,
             ),
-            _divisor(),
+            _divisor(context),
             _FilaToggle(
               icono: Icons.visibility_off,
-              color: AppColors.ugBlue,
+              color: context.colors.ugBlue,
               titulo: 'Permitir publicar en modo anónimo',
               subtitulo: 'Oculta tu autoría públicamente en foros libres',
               valor: anonimo,
               onChanged: onAnonimo,
             ),
-            _divisor(),
+            _divisor(context),
             _FilaNav(
               icono: Icons.military_tech,
-              color: AppColors.ugBlue,
+              color: context.colors.ugBlue,
               titulo: 'Quién puede ver mis distintivos',
               subtitulo: 'Insignias y logros de la comunidad',
               etiqueta: 'Toda la comunidad',
@@ -764,8 +810,8 @@ class _Apariencia extends StatelessWidget {
     required this.onProximamente,
   });
 
-  final int tema;
-  final ValueChanged<int> onTema;
+  final ThemeMode tema;
+  final ValueChanged<ThemeMode> onTema;
   final ValueChanged<String> onProximamente;
 
   @override
@@ -789,8 +835,8 @@ class _Apariencia extends StatelessWidget {
                     child: _TarjetaTema(
                       icono: Icons.light_mode,
                       texto: 'Claro',
-                      activo: tema == 0,
-                      onTap: () => onTema(0),
+                      activo: tema == ThemeMode.light,
+                      onTap: () => onTema(ThemeMode.light),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -798,8 +844,8 @@ class _Apariencia extends StatelessWidget {
                     child: _TarjetaTema(
                       icono: Icons.dark_mode,
                       texto: 'Oscuro',
-                      activo: tema == 1,
-                      onTap: () => onTema(1),
+                      activo: tema == ThemeMode.dark,
+                      onTap: () => onTema(ThemeMode.dark),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -807,47 +853,17 @@ class _Apariencia extends StatelessWidget {
                     child: _TarjetaTema(
                       icono: Icons.settings_brightness,
                       texto: 'Sistema',
-                      activo: tema == 2,
-                      onTap: () => onTema(2),
+                      activo: tema == ThemeMode.system,
+                      onTap: () => onTema(ThemeMode.system),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Divider(height: 1, color: AppColors.surfaceContainerHigh),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Paleta institucional activa',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Sol & Flamenco Guajiro',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _PaletaPreview(),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Divider(height: 1, color: AppColors.surfaceContainerHigh),
+              Divider(height: 1, color: context.colors.surfaceContainerHigh),
               _FilaNav(
                 icono: Icons.format_size,
-                color: AppColors.onSurfaceVariant,
+                color: context.colors.onSurfaceVariant,
                 titulo: 'Tamaño del texto',
                 subtitulo: 'Optimizado para lectura móvil',
                 etiqueta: 'Estándar',
@@ -880,8 +896,8 @@ class _TarjetaTema extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: activo
-          ? AppColors.surfaceContainerLow
-          : AppColors.surfaceContainerLowest,
+          ? context.colors.surfaceContainerLow
+          : context.colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -891,7 +907,7 @@ class _TarjetaTema extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: activo ? AppColors.ugOcre : AppColors.surfaceContainerHigh,
+              color: activo ? context.colors.ugOcre : context.colors.surfaceContainerHigh,
               width: activo ? 2 : 1,
             ),
           ),
@@ -900,7 +916,7 @@ class _TarjetaTema extends StatelessWidget {
               Icon(
                 icono,
                 size: 22,
-                color: activo ? AppColors.ugYellowDark : AppColors.outline,
+                color: activo ? context.colors.ugYellowDark : context.colors.outline,
               ),
               const SizedBox(height: 6),
               Text(
@@ -908,49 +924,12 @@ class _TarjetaTema extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: activo ? AppColors.onSurface : AppColors.outline,
+                  color: activo ? context.colors.onSurface : context.colors.outline,
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PaletaPreview extends StatelessWidget {
-  const _PaletaPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.surfaceContainerHigh),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _punto(AppColors.ugOcre),
-          _punto(AppColors.ugFlamenco),
-          _punto(AppColors.ugBlue),
-        ],
-      ),
-    );
-  }
-
-  Widget _punto(Color color) {
-    return Container(
-      width: 20,
-      height: 20,
-      margin: const EdgeInsets.symmetric(horizontal: 1),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        border: Border.all(color: AppColors.surfaceContainerLowest, width: 2),
       ),
     );
   }
@@ -970,22 +949,22 @@ class _Soporte extends StatelessWidget {
           children: [
             _FilaNav(
               icono: Icons.gavel,
-              color: AppColors.ugBlue,
+              color: context.colors.ugBlue,
               titulo: 'Normas de convivencia y código de honor',
               onTap: () => onProximamente('Las normas estarán disponibles pronto.'),
             ),
-            _divisor(),
+            _divisor(context),
             _FilaNav(
               icono: Icons.inbox,
-              color: AppColors.ugOcre,
+              color: context.colors.ugOcre,
               titulo: 'Buzón de sugerencias para Bienestar',
               onTap: () =>
                   onProximamente('El buzón de sugerencias estará disponible pronto.'),
             ),
-            _divisor(),
+            _divisor(context),
             _FilaNav(
               icono: Icons.quiz,
-              color: AppColors.onSurfaceVariant,
+              color: context.colors.onSurfaceVariant,
               titulo: 'Preguntas frecuentes del campus',
               onTap: () =>
                   onProximamente('Las preguntas frecuentes estarán disponibles pronto.'),
@@ -1009,8 +988,8 @@ class _BotonCerrarSesion extends StatelessWidget {
       icon: const Icon(Icons.logout, size: 20),
       label: const Text('Cerrar sesión'),
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.ugRed,
-        side: const BorderSide(color: AppColors.ugRed),
+        foregroundColor: context.colors.ugRed,
+        side: BorderSide(color: context.colors.ugRed),
         minimumSize: const Size.fromHeight(52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
@@ -1024,7 +1003,7 @@ class _PieVersion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         Text(
           'Campus · Universidad de La Guajira v1.0.0',
@@ -1033,7 +1012,7 @@ class _PieVersion extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.3,
-            color: AppColors.outline,
+            color: context.colors.outline,
           ),
         ),
       ],
@@ -1078,14 +1057,14 @@ class _Tarjeta extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+          color: context.colors.outlineVariant.withValues(alpha: 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withValues(alpha: 0.06),
+            color: context.colors.outline.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1148,15 +1127,15 @@ class _FilaToggle extends StatelessWidget {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.ugOcreLight,
+                          color: context.colors.ugOcreLight,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           extra!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.ugYellowDark,
+                            color: context.colors.ugYellowDark,
                           ),
                         ),
                       ),
@@ -1166,10 +1145,10 @@ class _FilaToggle extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitulo,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     height: 1.25,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -1180,7 +1159,7 @@ class _FilaToggle extends StatelessWidget {
             value: valor,
             onChanged: onChanged,
             activeTrackColor: color,
-            inactiveTrackColor: AppColors.surfaceContainerHighest,
+            inactiveTrackColor: context.colors.surfaceContainerHighest,
           ),
         ],
       ),
@@ -1233,10 +1212,10 @@ class _FilaNav extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitulo!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         height: 1.25,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -1247,18 +1226,18 @@ class _FilaNav extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 etiqueta!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.outline,
+                  color: context.colors.outline,
                 ),
               ),
             ],
             const SizedBox(width: 4),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: AppColors.outline,
+              color: context.colors.outline,
             ),
           ],
         ),
@@ -1288,6 +1267,10 @@ class _CajaIcono extends StatelessWidget {
   }
 }
 
-Widget _divisor() {
-  return Divider(height: 1, thickness: 1, color: AppColors.surfaceContainerHigh);
+Widget _divisor(BuildContext context) {
+  return Divider(
+    height: 1,
+    thickness: 1,
+    color: context.colors.surfaceContainerHigh,
+  );
 }

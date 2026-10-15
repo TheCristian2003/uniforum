@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../data/models/perfil.dart';
 import '../../../data/models/restriccion.dart';
 import '../../canales/presentation/canales_screen.dart';
@@ -67,8 +67,8 @@ class _MainShellState extends ConsumerState<MainShell> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: _publicar,
-        backgroundColor: AppColors.ugYellow,
-        foregroundColor: AppColors.onPrimary,
+        backgroundColor: context.colors.ugYellow,
+        foregroundColor: context.colors.onPrimary,
         elevation: 4,
         shape: const CircleBorder(),
         tooltip: 'Publicar',
@@ -93,31 +93,31 @@ class _BannerRestriccion extends ConsumerWidget {
     }
 
     return Material(
-      color: AppColors.ugRedLight,
+      color: context.colors.ugRedLight,
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
-              const Icon(Icons.block, color: AppColors.ugRed, size: 20),
+              Icon(Icons.block, color: context.colors.ugRed, size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Tu cuenta está restringida',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.ugRed,
+                        color: context.colors.ugRed,
                       ),
                     ),
                     Text(
                       _detalle(restriccion),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.ugRed,
+                        color: context.colors.ugRed,
                       ),
                     ),
                   ],
@@ -185,10 +185,10 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerLowest,
         border: Border(
-          top: BorderSide(color: AppColors.outlineVariant),
+          top: BorderSide(color: context.colors.outlineVariant),
         ),
         boxShadow: [
           BoxShadow(
@@ -204,11 +204,11 @@ class _BottomNav extends StatelessWidget {
           height: 64,
           child: Row(
             children: [
-              Expanded(child: _destino(0)),
-              Expanded(child: _destino(1)),
+              Expanded(child: _destino(context, 0)),
+              Expanded(child: _destino(context, 1)),
               const SizedBox(width: 72),
-              Expanded(child: _destino(2)),
-              Expanded(child: _destino(3)),
+              Expanded(child: _destino(context, 2)),
+              Expanded(child: _destino(context, 3)),
             ],
           ),
         ),
@@ -216,11 +216,11 @@ class _BottomNav extends StatelessWidget {
     );
   }
 
-  Widget _destino(int indice) {
+  Widget _destino(BuildContext context, int indice) {
     final destino = _destinos[indice];
     final activo = index == indice;
     final color =
-        activo ? AppColors.onPrimary : AppColors.onSurfaceVariant;
+        activo ? context.colors.onPrimary : context.colors.onSurfaceVariant;
 
     return InkWell(
       onTap: () => onSelect(indice),
@@ -229,7 +229,7 @@ class _BottomNav extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: activo ? AppColors.ugYellow : Colors.transparent,
+            color: activo ? context.colors.ugYellow : Colors.transparent,
             borderRadius: BorderRadius.circular(999),
           ),
           child: Column(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Estilo visual asociado a un `tipo_canal` de la tabla `maestra`.
 class EstiloTipoCanal {
@@ -22,38 +22,31 @@ class EstiloTipoCanal {
 /// Traduce el `codigo` de un registro `tipo_canal` a su estilo visual.
 ///
 /// Si el código no se reconoce (o es nulo) se usa el estilo "General".
-EstiloTipoCanal estiloTipoCanal(String? codigo) {
+EstiloTipoCanal estiloTipoCanal(BuildContext context, String? codigo) {
+  final c = context.colors;
   switch (codigo) {
     case 'unidad_academica':
-      return const EstiloTipoCanal(
+      return EstiloTipoCanal(
         codigo: 'unidad_academica',
         etiqueta: 'Unidad académica',
-        color: AppColors.ugYellowDark,
-        fondo: AppColors.ugOcreLight,
+        color: c.ugYellowDark,
+        fondo: c.ugOcreLight,
         icono: Icons.school,
       );
     case 'sede':
-      return const EstiloTipoCanal(
+      return EstiloTipoCanal(
         codigo: 'sede',
         etiqueta: 'Sede',
-        color: AppColors.ugFlamenco,
-        fondo: AppColors.ugFlamencoLight,
+        color: c.ugFlamenco,
+        fondo: c.ugFlamencoLight,
         icono: Icons.location_city,
       );
-    case 'general':
-      return const EstiloTipoCanal(
-        codigo: 'general',
-        etiqueta: 'General',
-        color: AppColors.ugBlue,
-        fondo: AppColors.ugBlueLight,
-        icono: Icons.groups,
-      );
     default:
-      return const EstiloTipoCanal(
+      return EstiloTipoCanal(
         codigo: 'general',
         etiqueta: 'General',
-        color: AppColors.ugBlue,
-        fondo: AppColors.ugBlueLight,
+        color: c.ugBlue,
+        fondo: c.ugBlueLight,
         icono: Icons.groups,
       );
   }

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/roles.dart';
 import '../../../core/gamification/niveles.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/estilo_publicacion.dart';
 import '../../../data/models/insignia.dart';
 import '../../../data/models/perfil.dart';
@@ -32,7 +32,7 @@ class PerfilScreen extends ConsumerWidget {
         centerTitle: false,
         toolbarHeight: 68,
         titleSpacing: 16,
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
@@ -64,7 +64,7 @@ class PerfilScreen extends ConsumerWidget {
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugYellow.withValues(alpha: 0.25),
+            color: context.colors.ugYellow.withValues(alpha: 0.25),
           ),
         ),
       ),
@@ -111,7 +111,7 @@ class PerfilUsuarioScreen extends ConsumerWidget {
         centerTitle: false,
         toolbarHeight: 68,
         titleSpacing: 0,
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
@@ -127,7 +127,7 @@ class PerfilUsuarioScreen extends ConsumerWidget {
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
-            color: AppColors.ugYellow.withValues(alpha: 0.25),
+            color: context.colors.ugYellow.withValues(alpha: 0.25),
           ),
         ),
       ),
@@ -178,12 +178,12 @@ class _PerfilMensaje extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icono, size: 40, color: AppColors.outline),
+            Icon(icono, size: 40, color: context.colors.outline),
             const SizedBox(height: 12),
             Text(
               texto,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.onSurfaceVariant),
+              style: TextStyle(color: context.colors.onSurfaceVariant),
             ),
           ],
         ),
@@ -212,21 +212,21 @@ class _HeroPerfil extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: context.colors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.outlineVariant),
+          border: Border.all(color: context.colors.outlineVariant),
         ),
         child: Stack(
           children: [
             Positioned(
               top: -60,
               right: -60,
-              child: _orbe(180, AppColors.ugYellow.withValues(alpha: 0.18)),
+              child: _orbe(180, context.colors.ugYellow.withValues(alpha: 0.18)),
             ),
             Positioned(
               bottom: -60,
               left: -60,
-              child: _orbe(180, AppColors.ugBlue.withValues(alpha: 0.12)),
+              child: _orbe(180, context.colors.ugBlue.withValues(alpha: 0.12)),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
@@ -256,10 +256,10 @@ class _HeroPerfil extends StatelessWidget {
                                 ),
                                 if (perfil.esVerificada) ...[
                                   const SizedBox(width: 4),
-                                  const Icon(
+                                  Icon(
                                     Icons.verified,
                                     size: 18,
-                                    color: AppColors.ugBlue,
+                                    color: context.colors.ugBlue,
                                   ),
                                 ],
                               ],
@@ -268,10 +268,10 @@ class _HeroPerfil extends StatelessWidget {
                             Text(
                               subtitulo,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.onSurfaceVariant,
+                                color: context.colors.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -335,18 +335,18 @@ class _AvatarPerfilGrande extends StatelessWidget {
             width: 96,
             height: 96,
             padding: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.ugYellow, AppColors.ugOcre, AppColors.ugRed],
+                colors: [context.colors.ugYellow, context.colors.ugOcre, context.colors.ugRed],
               ),
             ),
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.surfaceContainerLowest,
+                color: context.colors.surfaceContainerLowest,
               ),
               padding: const EdgeInsets.all(2),
               child: ClipOval(
@@ -355,9 +355,9 @@ class _AvatarPerfilGrande extends StatelessWidget {
                       ? Image.network(
                           avatarUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _inicial(inicial),
+                          errorBuilder: (_, _, _) => _inicial(context, inicial),
                         )
-                      : _inicial(inicial),
+                      : _inicial(context, inicial),
                 ),
               ),
             ),
@@ -368,16 +368,16 @@ class _AvatarPerfilGrande extends StatelessWidget {
     );
   }
 
-  Widget _inicial(String inicial) {
+  Widget _inicial(BuildContext context, String inicial) {
     return Container(
-      color: AppColors.ugBlueLight,
+      color: context.colors.ugBlueLight,
       alignment: Alignment.center,
       child: Text(
         inicial,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.w800,
-          color: AppColors.ugBlue,
+          color: context.colors.ugBlue,
         ),
       ),
     );
@@ -395,14 +395,14 @@ class _BadgeNivel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.ugOcre, AppColors.ugYellow],
+        gradient: LinearGradient(
+          colors: [context.colors.ugOcre, context.colors.ugYellow],
         ),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Colors.white, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withValues(alpha: 0.2),
+            color: context.colors.outline.withValues(alpha: 0.2),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -456,10 +456,10 @@ class _ProgresoNivel extends StatelessWidget {
             ),
             Text(
               'Nivel ${nivel.numero} (${nivel.nombre})',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: AppColors.ugBlue,
+                color: context.colors.ugBlue,
               ),
             ),
           ],
@@ -477,19 +477,19 @@ class _ProgresoNivel extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.ugOcreLight,
+                  color: context.colors.ugOcreLight,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: AppColors.ugYellow.withValues(alpha: 0.3),
+                    color: context.colors.ugYellow.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.bolt,
                       size: 13,
-                      color: AppColors.ugYellowDark,
+                      color: context.colors.ugYellowDark,
                     ),
                     const SizedBox(width: 4),
                     Flexible(
@@ -498,10 +498,10 @@ class _ProgresoNivel extends StatelessWidget {
                             ? '+${siguiente - puntos} pts para subir de rango'
                             : 'Nivel máximo alcanzado',
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.ugYellowDark,
+                          color: context.colors.ugYellowDark,
                         ),
                       ),
                     ),
@@ -512,9 +512,9 @@ class _ProgresoNivel extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               '$porcentaje% completado',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.onSurfaceVariant,
+                color: context.colors.onSurfaceVariant,
               ),
             ),
           ],
@@ -535,7 +535,7 @@ class _BarraProgreso extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       child: Container(
         height: 12,
-        color: AppColors.surfaceContainer,
+        color: context.colors.surfaceContainer,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final ancho = (constraints.maxWidth * valor).clamp(
@@ -546,9 +546,9 @@ class _BarraProgreso extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Container(
                 width: ancho,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.ugOcre, AppColors.ugYellowDark],
+                    colors: [context.colors.ugOcre, context.colors.ugYellowDark],
                   ),
                 ),
               ),
@@ -590,26 +590,26 @@ class _GridEstadisticas extends ConsumerWidget {
       _StatItem(
         icono: Icons.edit_note,
         etiqueta: 'Publicaciones',
-        color: AppColors.ugBlue,
+        color: context.colors.ugBlue,
         valor: datos?.publicaciones,
       ),
       _StatItem(
         icono: Icons.chat_bubble_outline,
         etiqueta: 'Comentarios',
-        color: AppColors.ugBlue,
+        color: context.colors.ugBlue,
         valor: datos?.comentarios,
       ),
       _StatItem(
         icono: Icons.lightbulb,
         etiqueta: 'Soluciones',
-        color: AppColors.ugYellow,
+        color: context.colors.ugYellow,
         valor: datos?.soluciones,
         extra: '+15 pts',
       ),
       _StatItem(
         icono: Icons.rocket_launch,
         etiqueta: 'Votos recibidos',
-        color: AppColors.ugRed,
+        color: context.colors.ugRed,
         valor: datos?.votosRecibidos,
       ),
     ];
@@ -646,10 +646,10 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.7),
+          color: context.colors.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
       child: Row(
@@ -687,7 +687,7 @@ class _StatCard extends StatelessWidget {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.ugYellow,
+                          color: context.colors.ugYellow,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -705,9 +705,9 @@ class _StatCard extends StatelessWidget {
                 Text(
                   item.etiqueta,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -727,7 +727,7 @@ class _TarjetaModeracion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainerLowest,
+      color: context.colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -737,7 +737,7 @@ class _TarjetaModeracion extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.outlineVariant.withValues(alpha: 0.7),
+              color: context.colors.outlineVariant.withValues(alpha: 0.7),
             ),
           ),
           child: Row(
@@ -747,17 +747,17 @@ class _TarjetaModeracion extends StatelessWidget {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: AppColors.ugBlueLight,
+                  color: context.colors.ugBlueLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shield_outlined,
-                  color: AppColors.ugBlue,
+                  color: context.colors.ugBlue,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -770,13 +770,13 @@ class _TarjetaModeracion extends StatelessWidget {
                       'Revisa los reportes pendientes.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+              Icon(Icons.chevron_right, color: context.colors.onSurfaceVariant),
             ],
           ),
         ),
@@ -785,16 +785,16 @@ class _TarjetaModeracion extends StatelessWidget {
   }
 }
 
-const _coloresInsignia = <String, Color>{
-  'primer_paso': AppColors.ugYellow,
-  'buen_samaritano': Color(0xFF059669),
-  'resuelve_dudas': AppColors.ugBlue,
-  'vendedor_activo': Color(0xFF7C3AED),
-  'voz_del_campus': AppColors.ugRed,
-  'constante': AppColors.ugOcre,
-  'gran_colaborador': AppColors.ugAguaMarina,
-  'tendencia': AppColors.ugFlamenco,
-};
+Map<String, Color> _coloresInsignia(BuildContext context) => {
+      'primer_paso': context.colors.ugYellow,
+      'buen_samaritano': const Color(0xFF059669),
+      'resuelve_dudas': context.colors.ugBlue,
+      'vendedor_activo': const Color(0xFF7C3AED),
+      'voz_del_campus': context.colors.ugRed,
+      'constante': context.colors.ugOcre,
+      'gran_colaborador': context.colors.ugAguaMarina,
+      'tendencia': context.colors.ugFlamenco,
+    };
 
 const _iconosInsignia = <String, IconData>{
   'star': Icons.star,
@@ -824,10 +824,10 @@ class _Distintivos extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLowest,
+            color: context.colors.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.outlineVariant.withValues(alpha: 0.7),
+              color: context.colors.outlineVariant.withValues(alpha: 0.7),
             ),
           ),
           child: Column(
@@ -835,10 +835,10 @@ class _Distintivos extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.military_tech,
                     size: 22,
-                    color: AppColors.ugYellowDark,
+                    color: context.colors.ugYellowDark,
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -850,9 +850,9 @@ class _Distintivos extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 '$obtenidas de ${lista.length} desbloqueados',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 16),
@@ -894,8 +894,8 @@ class _TarjetaInsignia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final obtenida = insignia.obtenida;
-    final color = _colorInsignia(insignia.codigo);
-    final colorTexto = obtenida ? color : AppColors.outline;
+    final color = _colorInsignia(context, insignia.codigo);
+    final colorTexto = obtenida ? color : context.colors.outline;
 
     return Tooltip(
       message: insignia.descripcion ?? insignia.nombre,
@@ -903,11 +903,11 @@ class _TarjetaInsignia extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: obtenida
-              ? AppColors.surfaceContainerLow
-              : AppColors.surfaceContainerLow.withValues(alpha: 0.5),
+              ? context.colors.surfaceContainerLow
+              : context.colors.surfaceContainerLow.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: obtenida ? color : AppColors.outlineVariant,
+            color: obtenida ? color : context.colors.outlineVariant,
             width: obtenida ? 2 : 1,
           ),
         ),
@@ -927,12 +927,12 @@ class _TarjetaInsignia extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: obtenida
                           ? fondoAcento(color)
-                          : AppColors.surfaceContainer,
+                          : context.colors.surfaceContainer,
                     ),
                     child: Icon(
                       _iconosInsignia[insignia.icono] ?? Icons.military_tech,
                       size: 22,
-                      color: obtenida ? color : AppColors.outline,
+                      color: obtenida ? color : context.colors.outline,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -945,8 +945,8 @@ class _TarjetaInsignia extends StatelessWidget {
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
                       color: obtenida
-                          ? AppColors.onSurface
-                          : AppColors.onSurfaceVariant,
+                          ? context.colors.onSurface
+                          : context.colors.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -959,8 +959,8 @@ class _TarjetaInsignia extends StatelessWidget {
                       fontSize: 10,
                       height: 1.25,
                       color: obtenida
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.outline,
+                          ? context.colors.onSurfaceVariant
+                          : context.colors.outline,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -972,7 +972,7 @@ class _TarjetaInsignia extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: obtenida
                           ? fondoAcento(color)
-                          : AppColors.surfaceContainer,
+                          : context.colors.surfaceContainer,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Row(
@@ -999,10 +999,10 @@ class _TarjetaInsignia extends StatelessWidget {
               ),
             ),
             if (!obtenida)
-              const Positioned(
+              Positioned(
                 top: 0,
                 right: 0,
-                child: Icon(Icons.lock, size: 15, color: AppColors.outline),
+                child: Icon(Icons.lock, size: 15, color: context.colors.outline),
               ),
           ],
         ),
@@ -1010,8 +1010,8 @@ class _TarjetaInsignia extends StatelessWidget {
     );
   }
 
-  Color _colorInsignia(String codigo) =>
-      _coloresInsignia[codigo] ?? AppColors.ugYellow;
+  Color _colorInsignia(BuildContext context, String codigo) =>
+      _coloresInsignia(context)[codigo] ?? context.colors.ugYellow;
 }
 
 class _MensajeDistintivos extends StatelessWidget {
@@ -1024,16 +1024,16 @@ class _MensajeDistintivos extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.7),
+          color: context.colors.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
       child: Text(
         texto,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.onSurfaceVariant),
+        style: TextStyle(color: context.colors.onSurfaceVariant),
       ),
     );
   }
@@ -1047,15 +1047,15 @@ class _DistintivosVacio extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.7),
+          color: context.colors.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.military_tech, size: 36, color: AppColors.ugYellow),
+          Icon(Icons.military_tech, size: 36, color: context.colors.ugYellow),
           SizedBox(height: 12),
           Text(
             'Tus distintivos llegarán pronto',
@@ -1066,7 +1066,7 @@ class _DistintivosVacio extends StatelessWidget {
           Text(
             'Publica, comenta y colabora para desbloquear logros.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.onSurfaceVariant),
+            style: TextStyle(color: context.colors.onSurfaceVariant),
           ),
         ],
       ),

@@ -2058,3 +2058,92 @@
 </div>
 </nav>
 </body></html>
+---
+
+## Sistema de tema (implementación Flutter)
+
+Referencia de código: `lib/core/theme/`.
+
+- `AppPalette` (`app_palette.dart`) es un `ThemeExtension` con variantes
+  `light` y `dark`. Se consume en widgets con `context.colors.<token>`.
+- `AppTheme.light()` / `AppTheme.dark()` (`app_theme.dart`) construyen el
+  `ThemeData` (Material 3) y registran la paleta como extensión.
+- `ThemeController` (`theme_controller.dart`) expone el `ThemeMode` activo.
+- La preferencia se persiste con `shared_preferences` a través de
+  `PreferencesService` (`lib/core/services/preferences_service.dart`).
+
+Regla: **no usar colores literales en widgets**; usar siempre `context.colors`.
+
+### Modos de apariencia
+
+| Modo | Valor | Descripción |
+| --- | --- | --- |
+| Claro | `ThemeMode.light` | Superficies cálidas claras. |
+| Oscuro | `ThemeMode.dark` | Superficies cálidas casi negras. |
+| Sistema | `ThemeMode.system` | Sigue el ajuste del sistema (**por defecto**). |
+
+Se cambia en Ajustes → *Apariencia e Identidad* → *Tema visual*. La selección
+persiste entre sesiones.
+
+### Colores de marca
+
+| Token | Claro | Oscuro |
+| --- | --- | --- |
+| `ugYellow` (principal) | `#C99A2E` | `#E0B84C` |
+| `ugYellowDark` | `#A67C1F` | `#F0CE72` |
+| `ugBlue` / `ugAzulMar` | `#0F4C81` | `#7FB0E0` |
+| `ugBlueLight` / `ugAzulMarLight` | `#E8F1F9` | `#1C2C3D` |
+| `ugRed` | `#C81D25` | `#F08A8F` |
+| `ugRedLight` | `#FDE8E9` | `#3A1E20` |
+| `ugFlamenco` | `#C2415A` | `#F094A6` |
+| `ugFlamencoLight` | `#FBE3E8` | `#3A2129` |
+| `ugOcre` | `#F2AE1C` | `#F6C250` |
+| `ugOcreLight` | `#FDF1D6` | `#3A2E14` |
+| `ugAguaMarina` | `#0E8F9E` | `#5FD0DD` |
+| `ugAguaMarinaLight` | `#DCF1F4` | `#123238` |
+| `ugAmarilloDesierto` | `#C99A2E` | `#E0B84C` |
+| `ugAmarilloDesiertoLight` | `#F7EBD2` | `#33291A` |
+| `ugNegro` | `#1E1E1E` | `#F2F2F2` |
+
+En modo oscuro los acentos conservan su matiz de marca pero se aclaran para
+mantener contraste sobre fondos oscuros; `ugNegro` se invierte (token de texto).
+
+### Neutros y superficies
+
+| Token | Claro | Oscuro |
+| --- | --- | --- |
+| `background` / `surface` | `#FBF8F5` | `#141210` |
+| `surfaceContainerLowest` | `#FFFFFF` | `#1C1A16` |
+| `surfaceContainerLow` | `#FAF7F0` | `#221F1A` |
+| `surfaceContainer` | `#F6F3EB` | `#272320` |
+| `surfaceContainerHigh` | `#F0EBD9` | `#302B24` |
+| `surfaceContainerHighest` | `#EAE5D8` | `#3A342C` |
+| `onPrimary` | `#FFFFFF` | `#211A0A` |
+| `onSurface` | `#1E1E1E` | `#F3EFE6` |
+| `onSurfaceVariant` | `#514533` | `#C7BDAA` |
+| `outline` | `#837561` | `#8E8471` |
+| `outlineVariant` | `#E5DCCE` | `#3C362D` |
+
+### Tipografía
+
+Plus Jakarta Sans (`headline`/`body`). Mientras no se empaquete la fuente se usa
+la tipografía por defecto de Material. Escala de referencia: `display-lg` 48,
+`headline-lg` 32, `headline-md` 24, `title-md` 18, `body-md` 14, `label-md` 13,
+`label-sm` 11.
+
+### Espaciado, bordes y componentes
+
+- Espaciado base: 4 / 8 / 12 / 16 / 20 / 24 / 32 px.
+- Bordes: tarjetas e inputs con radio **16 px**; pills y avatares `999`.
+- Componentes definidos en `AppTheme`: `appBarTheme`, `inputDecorationTheme`
+  (relleno `surfaceContainerLowest`, borde `outlineVariant`, foco `ugYellow`),
+  `filledButtonTheme` (fondo `ugYellow`, alto 52), `textButtonTheme` (`ugBlue`),
+  `cardTheme` (elevación 0, borde `outlineVariant`).
+
+### Preferencias persistidas (`shared_preferences`)
+
+- `tema.modo`: `light` | `dark` | `system`.
+- `ajustes.resumenes_ia`, `ajustes.sugerencias_ia`,
+  `ajustes.alertas_institucionales`, `ajustes.actividad_publicaciones`,
+  `ajustes.radar_perdidos`, `ajustes.ranking_semanal`,
+  `ajustes.publicar_anonimo` (booleanos, por defecto `true`).

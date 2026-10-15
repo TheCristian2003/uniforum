@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../data/repositories/reportes_repository.dart';
 
 /// Muestra la hoja inferior para reportar una publicación o un comentario.
@@ -15,7 +15,7 @@ Future<void> mostrarReportarSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surfaceContainerLowest,
+    backgroundColor: context.colors.surfaceContainerLowest,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -114,7 +114,7 @@ class _ReportarSheetState extends ConsumerState<_ReportarSheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.outlineVariant,
+                      color: context.colors.outlineVariant,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -122,7 +122,7 @@ class _ReportarSheetState extends ConsumerState<_ReportarSheet> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.flag_outlined, color: AppColors.ugRed),
+                    Icon(Icons.flag_outlined, color: context.colors.ugRed),
                     const SizedBox(width: 8),
                     Text(
                       _esComentario
@@ -136,10 +136,10 @@ class _ReportarSheetState extends ConsumerState<_ReportarSheet> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Cuéntanos por qué este contenido no debería estar aquí.',
                   style: TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
@@ -159,11 +159,11 @@ class _ReportarSheetState extends ConsumerState<_ReportarSheet> {
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (_, _) => const Padding(
+                  error: (_, _) => Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Text(
                       'No se pudieron cargar los motivos.',
-                      style: TextStyle(color: AppColors.onSurfaceVariant),
+                      style: TextStyle(color: context.colors.onSurfaceVariant),
                     ),
                   ),
                 ),
@@ -183,7 +183,7 @@ class _ReportarSheetState extends ConsumerState<_ReportarSheet> {
                   child: FilledButton.icon(
                     onPressed: _enviando ? null : _enviar,
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.ugRed,
+                      backgroundColor: context.colors.ugRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -233,7 +233,7 @@ class _OpcionMotivo extends StatelessWidget {
               seleccionado
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
-              color: seleccionado ? AppColors.ugRed : AppColors.outline,
+              color: seleccionado ? context.colors.ugRed : context.colors.outline,
             ),
             const SizedBox(width: 12),
             Expanded(

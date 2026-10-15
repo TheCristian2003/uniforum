@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Estilo visual (icono y color) para diferenciar tipos de publicación.
 class EstiloTipo {
@@ -10,42 +10,63 @@ class EstiloTipo {
   final Color color;
 }
 
-const _estilosTipo = <String, EstiloTipo>{
-  'discusion': EstiloTipo(icono: Icons.forum_outlined, color: AppColors.ugAzulMar),
-  'aviso': EstiloTipo(icono: Icons.campaign_outlined, color: AppColors.ugRed),
-  'venta': EstiloTipo(icono: Icons.storefront_outlined, color: AppColors.ugAmarilloDesierto),
-  'perdido': EstiloTipo(
-    icono: Icons.search_off_outlined,
-    color: AppColors.ugAmarilloDesierto,
-  ),
-  'encontrado': EstiloTipo(
-    icono: Icons.volunteer_activism_outlined,
-    color: AppColors.ugAguaMarina,
-  ),
-  'evento': EstiloTipo(icono: Icons.event_outlined, color: AppColors.ugFlamenco),
-};
-
-const _estiloTipoPorDefecto =
-    EstiloTipo(icono: Icons.article_outlined, color: AppColors.onSurfaceVariant);
-
 /// Icono y color de un tipo de publicación a partir de `maestra.codigo`.
-EstiloTipo estiloTipo(String? codigo) =>
-    _estilosTipo[codigo] ?? _estiloTipoPorDefecto;
-
-const _coloresCategoria = <String, Color>{
-  'academico': AppColors.ugAzulMar,
-  'vida_universitaria': AppColors.ugAguaMarina,
-  'chisme': AppColors.ugFlamenco,
-  'deportes': AppColors.ugOcre,
-  'eventos': AppColors.ugRed,
-  'marketplace': AppColors.ugAmarilloDesierto,
-  'tecnologia': AppColors.ugNegro,
-  'general': AppColors.ugBlue,
-};
+EstiloTipo estiloTipo(BuildContext context, String? codigo) {
+  final c = context.colors;
+  switch (codigo) {
+    case 'discusion':
+      return EstiloTipo(icono: Icons.forum_outlined, color: c.ugAzulMar);
+    case 'aviso':
+      return EstiloTipo(icono: Icons.campaign_outlined, color: c.ugRed);
+    case 'venta':
+      return EstiloTipo(
+        icono: Icons.storefront_outlined,
+        color: c.ugAmarilloDesierto,
+      );
+    case 'perdido':
+      return EstiloTipo(
+        icono: Icons.search_off_outlined,
+        color: c.ugAmarilloDesierto,
+      );
+    case 'encontrado':
+      return EstiloTipo(
+        icono: Icons.volunteer_activism_outlined,
+        color: c.ugAguaMarina,
+      );
+    case 'evento':
+      return EstiloTipo(icono: Icons.event_outlined, color: c.ugFlamenco);
+    default:
+      return EstiloTipo(
+        icono: Icons.article_outlined,
+        color: c.onSurfaceVariant,
+      );
+  }
+}
 
 /// Color asociado a una categoría de publicación a partir de `maestra.codigo`.
-Color colorCategoria(String? codigo) =>
-    _coloresCategoria[codigo] ?? AppColors.onSurfaceVariant;
+Color colorCategoria(BuildContext context, String? codigo) {
+  final c = context.colors;
+  switch (codigo) {
+    case 'academico':
+      return c.ugAzulMar;
+    case 'vida_universitaria':
+      return c.ugAguaMarina;
+    case 'chisme':
+      return c.ugFlamenco;
+    case 'deportes':
+      return c.ugOcre;
+    case 'eventos':
+      return c.ugRed;
+    case 'marketplace':
+      return c.ugAmarilloDesierto;
+    case 'tecnologia':
+      return c.ugNegro;
+    case 'general':
+      return c.ugBlue;
+    default:
+      return c.onSurfaceVariant;
+  }
+}
 
 /// Fondo translúcido derivado de un color de acento.
 Color fondoAcento(Color color) => color.withValues(alpha: 0.12);

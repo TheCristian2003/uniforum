@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/gamification/niveles.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../../../data/models/perfil.dart';
 
 /// Cabecera de perfil que se muestra en la barra superior de las pestañas
@@ -42,10 +42,10 @@ class CabeceraPerfil extends StatelessWidget {
                   ),
                   if (perfil.esVerificada) ...[
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       Icons.verified,
                       size: 15,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                     ),
                   ],
                 ],
@@ -53,20 +53,20 @@ class CabeceraPerfil extends StatelessWidget {
               const SizedBox(height: 2),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.workspace_premium,
                     size: 13,
-                    color: AppColors.ugBlue,
+                    color: context.colors.ugBlue,
                   ),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
                       '${nivel.nombre} · ${perfil.puntos} pts',
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -106,16 +106,16 @@ class AvatarNivel extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.ugBlueLight,
-              border: Border.all(color: AppColors.ugYellow, width: 2),
+              color: context.colors.ugBlueLight,
+              border: Border.all(color: context.colors.ugYellow, width: 2),
             ),
             child: tieneAvatar
                 ? Image.network(
                     avatarUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _inicial(inicial),
+                    errorBuilder: (_, _, _) => _inicial(context, inicial),
                   )
-                : _inicial(inicial),
+                : _inicial(context, inicial),
           ),
           Positioned(
             right: -2,
@@ -123,10 +123,10 @@ class AvatarNivel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: AppColors.ugRed,
+                color: context.colors.ugRed,
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
-                  color: AppColors.surfaceContainerLowest,
+                  color: context.colors.surfaceContainerLowest,
                   width: 1.5,
                 ),
               ),
@@ -146,14 +146,14 @@ class AvatarNivel extends StatelessWidget {
     );
   }
 
-  Widget _inicial(String inicial) {
+  Widget _inicial(BuildContext context, String inicial) {
     return Center(
       child: Text(
         inicial,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w800,
-          color: AppColors.ugBlue,
+          color: context.colors.ugBlue,
         ),
       ),
     );
@@ -177,10 +177,10 @@ class BotonCabecera extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceContainer,
+      color: context.colors.surfaceContainer,
       shape: CircleBorder(
         side: BorderSide(
-          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+          color: context.colors.outlineVariant.withValues(alpha: 0.4),
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -192,7 +192,7 @@ class BotonCabecera extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(icono, size: 20, color: AppColors.onSurfaceVariant),
+              Icon(icono, size: 20, color: context.colors.onSurfaceVariant),
               if (badge != null)
                 Positioned(
                   top: 5,
@@ -202,10 +202,10 @@ class BotonCabecera extends StatelessWidget {
                     height: 16,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: AppColors.ugRed,
+                      color: context.colors.ugRed,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.surfaceContainerLowest,
+                        color: context.colors.surfaceContainerLowest,
                         width: 1.5,
                       ),
                     ),

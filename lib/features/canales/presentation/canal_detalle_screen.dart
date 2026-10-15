@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/estilo_canal.dart';
 import '../../../core/utils/icono_canal.dart';
 import '../../../core/widgets/estado_view.dart';
@@ -126,15 +126,15 @@ class _CabeceraCanal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final estilo = estiloTipoCanal(tipoCodigo);
+    final estilo = estiloTipoCanal(context, tipoCodigo);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.7),
+          color: context.colors.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
       child: Column(
@@ -177,10 +177,10 @@ class _CabeceraCanal extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               canal.descripcion!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 height: 1.4,
-                color: AppColors.onSurfaceVariant,
+                color: context.colors.onSurfaceVariant,
               ),
             ),
           ],

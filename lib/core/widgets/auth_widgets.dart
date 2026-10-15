@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Fondo cálido y difuminado reutilizable para las pantallas de autenticación.
 class FondoAuth extends StatelessWidget {
@@ -27,7 +27,7 @@ class FondoAuth extends StatelessWidget {
             right: -60,
             child: _Orbe(
               tamano: 240,
-              color: AppColors.ugOcre.withValues(alpha: 0.18),
+              color: context.colors.ugOcre.withValues(alpha: 0.18),
             ),
           ),
           Positioned(
@@ -35,7 +35,7 @@ class FondoAuth extends StatelessWidget {
             left: -80,
             child: _Orbe(
               tamano: 200,
-              color: AppColors.ugBlue.withValues(alpha: 0.10),
+              color: context.colors.ugBlue.withValues(alpha: 0.10),
             ),
           ),
           child,
@@ -84,9 +84,9 @@ class MarcaCampus extends StatelessWidget {
           fit: BoxFit.contain,
         ),
         const SizedBox(height: 3),
-        const Text(
+        Text(
           'Universidad de La Guajira',
-          style: TextStyle(fontSize: 12.5, color: AppColors.onSurfaceVariant),
+          style: TextStyle(fontSize: 12.5, color: context.colors.onSurfaceVariant),
         ),
       ],
     );
@@ -131,7 +131,7 @@ class CampoAuth extends StatelessWidget {
   Widget build(BuildContext context) {
     final borde = OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.outlineVariant),
+      borderSide: BorderSide(color: context.colors.outlineVariant),
     );
 
     return Column(
@@ -141,20 +141,20 @@ class CampoAuth extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
+                color: context.colors.onSurface,
               ),
             ),
             if (requerido) ...[
               const SizedBox(width: 3),
-              const Text(
+              Text(
                 '*',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.ugRed,
+                  color: context.colors.ugRed,
                 ),
               ),
             ],
@@ -182,15 +182,15 @@ class CampoAuth extends StatelessWidget {
             enabledBorder: borde,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.ugBlue, width: 2),
+              borderSide: BorderSide(color: context.colors.ugBlue, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.ugRed),
+              borderSide: BorderSide(color: context.colors.ugRed),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.ugRed, width: 2),
+              borderSide: BorderSide(color: context.colors.ugRed, width: 2),
             ),
           ),
         ),
@@ -230,7 +230,7 @@ class CampoAuthDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final borde = OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.outlineVariant),
+      borderSide: BorderSide(color: context.colors.outlineVariant),
     );
 
     return Column(
@@ -240,20 +240,20 @@ class CampoAuthDropdown extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
+                color: context.colors.onSurface,
               ),
             ),
             if (requerido) ...[
               const SizedBox(width: 3),
-              const Text(
+              Text(
                 '*',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.ugRed,
+                  color: context.colors.ugRed,
                 ),
               ),
             ],
@@ -262,7 +262,7 @@ class CampoAuthDropdown extends StatelessWidget {
               InkWell(
                 onTap: onClear,
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -270,7 +270,7 @@ class CampoAuthDropdown extends StatelessWidget {
                       Icon(
                         Icons.close_rounded,
                         size: 14,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                       SizedBox(width: 3),
                       Text(
@@ -278,7 +278,7 @@ class CampoAuthDropdown extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.onSurfaceVariant,
+                          color: context.colors.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -300,7 +300,7 @@ class CampoAuthDropdown extends StatelessWidget {
           decoration: InputDecoration(
             prefixIcon: Icon(icono, size: 20),
             filled: true,
-            fillColor: AppColors.surfaceContainerLowest,
+            fillColor: context.colors.surfaceContainerLowest,
             isDense: true,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -308,15 +308,15 @@ class CampoAuthDropdown extends StatelessWidget {
             enabledBorder: borde,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.ugBlue, width: 2),
+              borderSide: BorderSide(color: context.colors.ugBlue, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.ugRed),
+              borderSide: BorderSide(color: context.colors.ugRed),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.ugRed, width: 2),
+              borderSide: BorderSide(color: context.colors.ugRed, width: 2),
             ),
           ),
           items: items,
@@ -348,9 +348,9 @@ class BotonAuth extends StatelessWidget {
     return FilledButton(
       onPressed: cargando ? null : onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.ugOcre,
+        backgroundColor: context.colors.ugOcre,
         foregroundColor: _textoSobreDorado,
-        disabledBackgroundColor: AppColors.ugOcre.withValues(alpha: 0.5),
+        disabledBackgroundColor: context.colors.ugOcre.withValues(alpha: 0.5),
         disabledForegroundColor: _textoSobreDorado.withValues(alpha: 0.6),
         minimumSize: const Size.fromHeight(52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

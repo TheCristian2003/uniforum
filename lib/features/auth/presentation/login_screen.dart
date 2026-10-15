@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/auth_widgets.dart';
 import '../../../core/widgets/message_card.dart';
 import 'auth_controller.dart';
@@ -40,7 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authControllerProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: FondoAuth(
         child: SafeArea(
           child: Center(
@@ -56,10 +56,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLowest,
+                        color: context.colors.surfaceContainerLowest,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: AppColors.outlineVariant.withValues(alpha: 0.6),
+                          color: context.colors.outlineVariant.withValues(alpha: 0.6),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -74,22 +74,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const Text(
+                            Text(
                               '¡Te damos la bienvenida!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.onSurface,
+                                color: context.colors.onSurface,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
+                            Text(
                               'Ingresa a tu ecosistema universitario',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 12.5,
-                                color: AppColors.onSurfaceVariant,
+                                color: context.colors.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -142,12 +142,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Flexible(
+                                Flexible(
                                   child: Text(
                                     '¿No tienes una cuenta?',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: AppColors.onSurfaceVariant,
+                                      color: context.colors.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
@@ -166,11 +166,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                             ),
                                           );
                                         },
-                                  child: const Text(
+                                  child: Text(
                                     'Crear cuenta',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w800,
-                                      color: AppColors.ugRed,
+                                      color: context.colors.ugRed,
                                     ),
                                   ),
                                 ),

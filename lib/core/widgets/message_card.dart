@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Mensaje en línea para estados de error o información en formularios.
 class MessageCard extends StatelessWidget {
@@ -16,8 +16,8 @@ class MessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final esError = tipo == MessageCardTipo.error;
-    final color = esError ? AppColors.ugRed : AppColors.ugBlue;
-    final fondo = esError ? AppColors.ugRedLight : AppColors.ugBlueLight;
+    final color = esError ? context.colors.ugRed : context.colors.ugBlue;
+    final fondo = esError ? context.colors.ugRedLight : context.colors.ugBlueLight;
     final icono = esError ? Icons.error_outline : Icons.info_outline;
 
     return Container(

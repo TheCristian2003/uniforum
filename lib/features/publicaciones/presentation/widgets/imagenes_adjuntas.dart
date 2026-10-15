@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Imagen elegida en el cliente, en memoria, pendiente de subir a Storage.
 class ImagenSeleccionada {
@@ -67,7 +67,7 @@ class _Imagen extends StatelessWidget {
           loadingBuilder: (context, child, progreso) => Container(
             width: ancho,
             height: alto,
-            color: AppColors.surfaceContainer,
+            color: context.colors.surfaceContainer,
             child: progreso == null
                 ? child
                 : const Center(
@@ -81,11 +81,11 @@ class _Imagen extends StatelessWidget {
           errorBuilder: (_, _, _) => Container(
             width: ancho,
             height: alto,
-            color: AppColors.surfaceContainer,
+            color: context.colors.surfaceContainer,
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.broken_image_outlined,
-              color: AppColors.onSurfaceVariant,
+              color: context.colors.onSurfaceVariant,
             ),
           ),
         ),

@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/auth/roles.dart';
 import '../../../core/gamification/niveles.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/estilo_publicacion.dart';
 import '../../../core/utils/fecha_relativa.dart';
 import '../../../core/widgets/estado_view.dart';
@@ -249,7 +249,7 @@ class _PublicacionDetalleScreenState
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.ugRed),
+            style: FilledButton.styleFrom(backgroundColor: context.colors.ugRed),
             child: Text(accion),
           ),
         ],
@@ -378,12 +378,12 @@ class _PublicacionDetalleScreenState
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: context.colors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
         shape: Border(
           bottom: BorderSide(
-            color: AppColors.outlineVariant.withValues(alpha: 0.5),
+            color: context.colors.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
         leadingWidth: 56,
@@ -393,8 +393,8 @@ class _PublicacionDetalleScreenState
             tooltip: 'Volver',
             onPressed: () => Navigator.of(context).maybePop(),
             style: IconButton.styleFrom(
-              backgroundColor: AppColors.surfaceContainer,
-              foregroundColor: AppColors.ugBlue,
+              backgroundColor: context.colors.surfaceContainer,
+              foregroundColor: context.colors.ugBlue,
             ),
             icon: const Icon(Icons.arrow_back),
           ),
@@ -409,8 +409,8 @@ class _PublicacionDetalleScreenState
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.ugOcre,
+                  decoration: BoxDecoration(
+                    color: context.colors.ugOcre,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -419,10 +419,10 @@ class _PublicacionDetalleScreenState
                   child: Text(
                     '#${publicacion.canalNombre ?? 'General'}',
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -432,18 +432,18 @@ class _PublicacionDetalleScreenState
             const SizedBox(height: 1),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.schedule,
                   size: 13,
-                  color: AppColors.outline,
+                  color: context.colors.outline,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   fechaRelativa(publicacion.creadoEn),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -453,9 +453,9 @@ class _PublicacionDetalleScreenState
         actions: [
           PopupMenuButton<String>(
             tooltip: 'Más opciones',
-            icon: const Icon(
+            icon: Icon(
               Icons.more_vert,
-              color: AppColors.onSurfaceVariant,
+              color: context.colors.onSurfaceVariant,
             ),
             onSelected: (value) {
               switch (value) {
@@ -473,7 +473,7 @@ class _PublicacionDetalleScreenState
             },
             itemBuilder: (_) {
               if (esMia) {
-                return const [
+                return [
                   PopupMenuItem(
                     value: 'editar',
                     child: Row(
@@ -491,7 +491,7 @@ class _PublicacionDetalleScreenState
                         Icon(
                           Icons.delete_outline,
                           size: 20,
-                          color: AppColors.ugRed,
+                          color: context.colors.ugRed,
                         ),
                         SizedBox(width: 12),
                         Text('Eliminar'),
@@ -512,14 +512,14 @@ class _PublicacionDetalleScreenState
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'eliminar_moderacion',
                     child: Row(
                       children: [
                         Icon(
                           Icons.delete_outline,
                           size: 20,
-                          color: AppColors.ugRed,
+                          color: context.colors.ugRed,
                         ),
                         SizedBox(width: 12),
                         Text('Eliminar'),
@@ -527,14 +527,14 @@ class _PublicacionDetalleScreenState
                     ),
                   ),
                 ],
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'reportar',
                   child: Row(
                     children: [
                       Icon(
                         Icons.flag_outlined,
                         size: 20,
-                        color: AppColors.ugRed,
+                        color: context.colors.ugRed,
                       ),
                       SizedBox(width: 12),
                       Text('Reportar'),
@@ -702,7 +702,7 @@ class _TarjetaPublicacion extends StatelessWidget {
     final alias = publicacion.anonimo
         ? 'Anónimo'
         : (publicacion.autorAlias ?? 'Usuario');
-    final tipo = estiloTipo(publicacion.tipoCodigo);
+    final tipo = estiloTipo(context, publicacion.tipoCodigo);
     final tieneAvatar = !publicacion.anonimo &&
         publicacion.autorAvatarUrl != null &&
         publicacion.autorAvatarUrl!.isNotEmpty;
@@ -717,14 +717,14 @@ class _TarjetaPublicacion extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.45),
+          color: context.colors.outlineVariant.withValues(alpha: 0.45),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withValues(alpha: 0.06),
+            color: context.colors.outline.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -778,10 +778,10 @@ class _TarjetaPublicacion extends StatelessWidget {
                               ),
                               if (publicacion.autorVerificada) ...[
                                 const SizedBox(width: 4),
-                                const Icon(
+                                Icon(
                                   Icons.verified,
                                   size: 16,
-                                  color: AppColors.ugBlue,
+                                  color: context.colors.ugBlue,
                                 ),
                               ],
                             ],
@@ -789,9 +789,9 @@ class _TarjetaPublicacion extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             fechaRelativa(publicacion.creadoEn),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.onSurfaceVariant,
+                              color: context.colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -807,7 +807,7 @@ class _TarjetaPublicacion extends StatelessWidget {
                   const SizedBox(height: 12),
                   _EtiquetaCategoria(
                     texto: textoEtiqueta,
-                    color: colorCategoria(publicacion.categoriaCodigo),
+                    color: colorCategoria(context, publicacion.categoriaCodigo),
                   ),
                 ],
                 if (publicacion.titulo != null) ...[
@@ -841,7 +841,7 @@ class _TarjetaPublicacion extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                        color: context.colors.outlineVariant.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -854,31 +854,31 @@ class _TarjetaPublicacion extends StatelessWidget {
                         onVotar: onVotar,
                       ),
                       const Spacer(),
-                      const Icon(
+                      Icon(
                         Icons.forum_outlined,
                         size: 19,
-                        color: AppColors.ugBlue,
+                        color: context.colors.ugBlue,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         '$totalComentarios',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.onSurfaceVariant,
+                          color: context.colors.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ),
                 if (!habilitado)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 10),
                     child: Text(
                       'No puedes votar tu propia publicación.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -918,24 +918,24 @@ class _EncabezadoComentarios extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.ugBlueLight,
+                color: context.colors.ugBlueLight,
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
                 '$total',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.ugBlue,
+                  color: context.colors.ugBlue,
                 ),
               ),
             ),
             const Spacer(),
-            const Icon(Icons.tune, size: 16, color: AppColors.outline),
+            Icon(Icons.tune, size: 16, color: context.colors.outline),
             const SizedBox(width: 4),
-            const Text(
+            Text(
               'Filtro',
-              style: TextStyle(fontSize: 12, color: AppColors.outline),
+              style: TextStyle(fontSize: 12, color: context.colors.outline),
             ),
           ],
         ),
@@ -986,12 +986,12 @@ class _ChipFiltro extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: activo ? AppColors.ugOcre : AppColors.surfaceContainerLowest,
+          color: activo ? context.colors.ugOcre : context.colors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: activo
-                ? AppColors.ugOcre
-                : AppColors.outlineVariant.withValues(alpha: 0.6),
+                ? context.colors.ugOcre
+                : context.colors.outlineVariant.withValues(alpha: 0.6),
           ),
         ),
         child: Row(
@@ -1001,7 +1001,7 @@ class _ChipFiltro extends StatelessWidget {
               Icon(
                 icono,
                 size: 15,
-                color: activo ? colorActivo : AppColors.onSurfaceVariant,
+                color: activo ? colorActivo : context.colors.onSurfaceVariant,
               ),
               const SizedBox(width: 5),
             ],
@@ -1010,7 +1010,7 @@ class _ChipFiltro extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: activo ? FontWeight.w800 : FontWeight.w600,
-                color: activo ? colorActivo : AppColors.onSurfaceVariant,
+                color: activo ? colorActivo : context.colors.onSurfaceVariant,
               ),
             ),
           ],
@@ -1054,7 +1054,7 @@ class _DetalleMetadatos extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainer,
+        color: context.colors.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1070,9 +1070,9 @@ class _DetalleMetadatos extends StatelessWidget {
                     width: 100,
                     child: Text(
                       fila.$1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -1130,12 +1130,12 @@ class _ComentarioTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: context.colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: comentario.esSolucion
-              ? AppColors.ugAguaMarina
-              : AppColors.outlineVariant.withValues(alpha: 0.4),
+              ? context.colors.ugAguaMarina
+              : context.colors.outlineVariant.withValues(alpha: 0.4),
           width: comentario.esSolucion ? 2 : 1,
         ),
       ),
@@ -1182,10 +1182,10 @@ class _ComentarioTile extends StatelessWidget {
                         ),
                         if (comentario.autorVerificada) ...[
                           const SizedBox(width: 4),
-                          const Icon(
+                          Icon(
                             Icons.verified,
                             size: 14,
-                            color: AppColors.ugBlue,
+                            color: context.colors.ugBlue,
                           ),
                         ],
                         if (esDelAutor) ...[
@@ -1196,7 +1196,7 @@ class _ComentarioTile extends StatelessWidget {
                               vertical: 1,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.ugOcre,
+                              color: context.colors.ugOcre,
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: const Text(
@@ -1214,9 +1214,9 @@ class _ComentarioTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       fechaRelativa(comentario.creadoEn),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -1229,20 +1229,20 @@ class _ComentarioTile extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.flag_outlined,
                     size: 18,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                   ),
                 ),
               if (onEditar != null || onEliminar != null)
                 PopupMenuButton<String>(
                   tooltip: 'Más opciones',
                   padding: EdgeInsets.zero,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.more_vert,
                     size: 20,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                   ),
                   onSelected: (value) {
                     switch (value) {
@@ -1265,14 +1265,14 @@ class _ComentarioTile extends StatelessWidget {
                         ),
                       ),
                     if (onEliminar != null)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'eliminar',
                         child: Row(
                           children: [
                             Icon(
                               Icons.delete_outline,
                               size: 20,
-                              color: AppColors.ugRed,
+                              color: context.colors.ugRed,
                             ),
                             SizedBox(width: 12),
                             Text('Eliminar'),
@@ -1306,7 +1306,7 @@ class _ComentarioTile extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onMarcarSolucion,
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.ugBlue,
+                    foregroundColor: context.colors.ugBlue,
                     visualDensity: VisualDensity.compact,
                   ),
                   icon: const Icon(Icons.check_circle_outline, size: 18),
@@ -1514,11 +1514,11 @@ class _VistaImagen extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => Container(
                 height: 150,
-                color: AppColors.surfaceContainer,
+                color: context.colors.surfaceContainer,
                 alignment: Alignment.center,
-                child: const Icon(
+                child: Icon(
                   Icons.broken_image_outlined,
-                  color: AppColors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                 ),
               ),
             ),
@@ -1535,33 +1535,33 @@ class _BannerSolucion extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.ugAguaMarina.withValues(alpha: 0.12),
+        color: context.colors.ugAguaMarina.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: AppColors.ugAguaMarina.withValues(alpha: 0.4),
+          color: context.colors.ugAguaMarina.withValues(alpha: 0.4),
         ),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.verified_user,
             size: 18,
-            color: AppColors.ugAguaMarina,
+            color: context.colors.ugAguaMarina,
           ),
           const SizedBox(width: 8),
-          const Text(
+          Text(
             'Solución verificada',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: AppColors.ugAguaMarina,
+              color: context.colors.ugAguaMarina,
             ),
           ),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.ugOcre,
+              color: context.colors.ugOcre,
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
@@ -1605,10 +1605,10 @@ class _CampoComentario extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: context.colors.surfaceContainerLowest,
           border: Border(
             top: BorderSide(
-              color: AppColors.outlineVariant.withValues(alpha: 0.6),
+              color: context.colors.outlineVariant.withValues(alpha: 0.6),
             ),
           ),
         ),
@@ -1663,7 +1663,7 @@ class _CampoComentario extends StatelessWidget {
                   IconButton(
                     tooltip: 'Adjuntar imagen',
                     onPressed: enviando ? null : onAnadirImagen,
-                    color: AppColors.onSurfaceVariant,
+                    color: context.colors.onSurfaceVariant,
                     icon: const Icon(Icons.attach_file),
                   ),
                   Expanded(
@@ -1677,7 +1677,7 @@ class _CampoComentario extends StatelessWidget {
                         isDense: true,
                         hintText: 'Escribe un aporte constructivo...',
                         filled: true,
-                        fillColor: AppColors.background,
+                        fillColor: context.colors.background,
                         contentPadding: const EdgeInsets.fromLTRB(
                           16,
                           10,
@@ -1687,26 +1687,26 @@ class _CampoComentario extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(999),
                           borderSide: BorderSide(
-                            color: AppColors.outlineVariant,
+                            color: context.colors.outlineVariant,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(999),
                           borderSide: BorderSide(
-                            color: AppColors.outlineVariant,
+                            color: context.colors.outlineVariant,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(999),
-                          borderSide: const BorderSide(
-                            color: AppColors.ugBlue,
+                          borderSide: BorderSide(
+                            color: context.colors.ugBlue,
                             width: 1.5,
                           ),
                         ),
                         suffixIcon: Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: Material(
-                            color: AppColors.ugOcre,
+                            color: context.colors.ugOcre,
                             shape: const CircleBorder(),
                             child: InkWell(
                               onTap: onAsistenteIA,
@@ -1733,8 +1733,8 @@ class _CampoComentario extends StatelessWidget {
                   const SizedBox(width: 8),
                   Material(
                     color: enviando
-                        ? AppColors.surfaceContainerHigh
-                        : AppColors.ugOcre,
+                        ? context.colors.surfaceContainerHigh
+                        : context.colors.ugOcre,
                     shape: const CircleBorder(),
                     child: InkWell(
                       onTap: enviando ? null : onEnviar,
@@ -1742,12 +1742,12 @@ class _CampoComentario extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(10),
                         child: enviando
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: AppColors.onSurfaceVariant,
+                                  color: context.colors.onSurfaceVariant,
                                 ),
                               )
                             : const Icon(
@@ -1794,12 +1794,12 @@ class _AvatarNivel extends StatelessWidget {
             width: 48,
             height: 48,
             padding: const EdgeInsets.all(2.5),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.ugOcre, AppColors.ugBlue],
+                colors: [context.colors.ugOcre, context.colors.ugBlue],
               ),
             ),
             child: Container(
@@ -1823,7 +1823,7 @@ class _AvatarNivel extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppColors.ugBlue,
+                  color: context.colors.ugBlue,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: Colors.white, width: 2),
                 ),
@@ -1935,17 +1935,17 @@ class _Avatar extends StatelessWidget {
     final tieneImagen = imagen != null && imagen!.isNotEmpty;
     return CircleAvatar(
       radius: radio,
-      backgroundColor: AppColors.ugBlueLight,
+      backgroundColor: context.colors.ugBlueLight,
       backgroundImage: tieneImagen ? NetworkImage(imagen!) : null,
       child: tieneImagen
           ? null
           : (anonimo
-                ? Icon(Icons.person, size: radio + 4, color: AppColors.ugBlue)
+                ? Icon(Icons.person, size: radio + 4, color: context.colors.ugBlue)
                 : Text(
                     alias.isNotEmpty ? alias[0].toUpperCase() : '?',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ugBlue,
+                      color: context.colors.ugBlue,
                       fontSize: radio * 0.8,
                     ),
                   )),
