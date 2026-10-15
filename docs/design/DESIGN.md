@@ -2089,40 +2089,46 @@ persiste entre sesiones.
 
 | Token | Claro | Oscuro |
 | --- | --- | --- |
-| `ugYellow` (principal) | `#C99A2E` | `#E0B84C` |
-| `ugYellowDark` | `#A67C1F` | `#F0CE72` |
+| `ugYellow` (principal) | `#C99A2E` | `#F2F2F2` |
+| `ugYellowDark` | `#A67C1F` | `#CFCFCF` |
 | `ugBlue` / `ugAzulMar` | `#0F4C81` | `#7FB0E0` |
 | `ugBlueLight` / `ugAzulMarLight` | `#E8F1F9` | `#1C2C3D` |
 | `ugRed` | `#C81D25` | `#F08A8F` |
 | `ugRedLight` | `#FDE8E9` | `#3A1E20` |
 | `ugFlamenco` | `#C2415A` | `#F094A6` |
 | `ugFlamencoLight` | `#FBE3E8` | `#3A2129` |
-| `ugOcre` | `#F2AE1C` | `#F6C250` |
-| `ugOcreLight` | `#FDF1D6` | `#3A2E14` |
+| `ugOcre` | `#F2AE1C` | `#E6E6E6` |
+| `ugOcreLight` | `#FDF1D6` | `#2A2A2A` |
 | `ugAguaMarina` | `#0E8F9E` | `#5FD0DD` |
 | `ugAguaMarinaLight` | `#DCF1F4` | `#123238` |
-| `ugAmarilloDesierto` | `#C99A2E` | `#E0B84C` |
-| `ugAmarilloDesiertoLight` | `#F7EBD2` | `#33291A` |
+| `ugAmarilloDesierto` | `#C99A2E` | `#F2F2F2` |
+| `ugAmarilloDesiertoLight` | `#F7EBD2` | `#2E2E2E` |
 | `ugNegro` | `#1E1E1E` | `#F2F2F2` |
 
-En modo oscuro los acentos conservan su matiz de marca pero se aclaran para
-mantener contraste sobre fondos oscuros; `ugNegro` se invierte (token de texto).
+En modo oscuro el acento primario (amarillo institucional) se reemplaza por
+blanco/gris claro (`ugYellow`/`ugOcre`/`ugAmarilloDesierto`) con texto oscuro,
+porque el amarillo desentona con el negro. Los demás acentos semánticos (azul,
+rojo, flamenco, agua marina) se conservan aclarados. `ugNegro` se invierte (token
+de texto).
 
 ### Neutros y superficies
 
 | Token | Claro | Oscuro |
 | --- | --- | --- |
-| `background` / `surface` | `#FBF8F5` | `#141210` |
-| `surfaceContainerLowest` | `#FFFFFF` | `#1C1A16` |
-| `surfaceContainerLow` | `#FAF7F0` | `#221F1A` |
-| `surfaceContainer` | `#F6F3EB` | `#272320` |
-| `surfaceContainerHigh` | `#F0EBD9` | `#302B24` |
-| `surfaceContainerHighest` | `#EAE5D8` | `#3A342C` |
-| `onPrimary` | `#FFFFFF` | `#211A0A` |
-| `onSurface` | `#1E1E1E` | `#F3EFE6` |
-| `onSurfaceVariant` | `#514533` | `#C7BDAA` |
-| `outline` | `#837561` | `#8E8471` |
-| `outlineVariant` | `#E5DCCE` | `#3C362D` |
+| `background` / `surface` | `#FBF8F5` | `#141414` |
+| `surfaceContainerLowest` | `#FFFFFF` | `#1C1C1C` |
+| `surfaceContainerLow` | `#FAF7F0` | `#222222` |
+| `surfaceContainer` | `#F6F3EB` | `#262626` |
+| `surfaceContainerHigh` | `#F0EBD9` | `#303030` |
+| `surfaceContainerHighest` | `#EAE5D8` | `#3A3A3A` |
+| `onPrimary` | `#FFFFFF` | `#141414` |
+| `onSurface` | `#1E1E1E` | `#F3F3F3` |
+| `onSurfaceVariant` | `#514533` | `#BDBDBD` |
+| `outline` | `#837561` | `#8A8A8A` |
+| `outlineVariant` | `#E5DCCE` | `#3C3C3C` |
+
+Las superficies oscuras son gris neutro (sin el tinte cálido anterior) para
+combinar con el acento blanco.
 
 ### Tipografía
 

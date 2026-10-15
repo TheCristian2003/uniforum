@@ -127,37 +127,42 @@ class AppPalette extends ThemeExtension<AppPalette> {
     outlineVariant: Color(0xFFE5DCCE),
   );
 
-  /// Tema oscuro: superficies cálidas casi negras y acentos aclarados.
+  /// Tema oscuro: superficies gris neutro casi negras y acento primario blanco.
+  ///
+  /// El amarillo institucional no se usa como acento en oscuro (desentona con
+  /// el negro): el primario pasa a un blanco roto con texto oscuro. Los demás
+  /// acentos semánticos (azul, rojo, flamenco, agua marina) sí se conservan,
+  /// aclarados para mantener contraste.
   static const AppPalette dark = AppPalette(
-    ugYellow: Color(0xFFE0B84C),
-    ugYellowDark: Color(0xFFF0CE72),
+    ugYellow: Color(0xFFF2F2F2),
+    ugYellowDark: Color(0xFFCFCFCF),
     ugBlue: Color(0xFF7FB0E0),
     ugBlueLight: Color(0xFF1C2C3D),
     ugRed: Color(0xFFF08A8F),
     ugRedLight: Color(0xFF3A1E20),
     ugFlamenco: Color(0xFFF094A6),
     ugFlamencoLight: Color(0xFF3A2129),
-    ugOcre: Color(0xFFF6C250),
-    ugOcreLight: Color(0xFF3A2E14),
+    ugOcre: Color(0xFFE6E6E6),
+    ugOcreLight: Color(0xFF2A2A2A),
     ugAguaMarina: Color(0xFF5FD0DD),
     ugAguaMarinaLight: Color(0xFF123238),
-    ugAmarilloDesierto: Color(0xFFE0B84C),
-    ugAmarilloDesiertoLight: Color(0xFF33291A),
+    ugAmarilloDesierto: Color(0xFFF2F2F2),
+    ugAmarilloDesiertoLight: Color(0xFF2E2E2E),
     ugAzulMar: Color(0xFF7FB0E0),
     ugAzulMarLight: Color(0xFF1C2C3D),
     ugNegro: Color(0xFFF2F2F2),
-    background: Color(0xFF141210),
-    surface: Color(0xFF141210),
-    surfaceContainerLowest: Color(0xFF1C1A16),
-    surfaceContainerLow: Color(0xFF221F1A),
-    surfaceContainer: Color(0xFF272320),
-    surfaceContainerHigh: Color(0xFF302B24),
-    surfaceContainerHighest: Color(0xFF3A342C),
-    onPrimary: Color(0xFF211A0A),
-    onSurface: Color(0xFFF3EFE6),
-    onSurfaceVariant: Color(0xFFC7BDAA),
-    outline: Color(0xFF8E8471),
-    outlineVariant: Color(0xFF3C362D),
+    background: Color(0xFF141414),
+    surface: Color(0xFF141414),
+    surfaceContainerLowest: Color(0xFF1C1C1C),
+    surfaceContainerLow: Color(0xFF222222),
+    surfaceContainer: Color(0xFF262626),
+    surfaceContainerHigh: Color(0xFF303030),
+    surfaceContainerHighest: Color(0xFF3A3A3A),
+    onPrimary: Color(0xFF141414),
+    onSurface: Color(0xFFF3F3F3),
+    onSurfaceVariant: Color(0xFFBDBDBD),
+    outline: Color(0xFF8A8A8A),
+    outlineVariant: Color(0xFF3C3C3C),
   );
 
   @override
