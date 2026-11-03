@@ -8,6 +8,8 @@
 --        gabriela.rios@univ.test, hugo.mendoza@univ.test, ivan.sanchez@univ.test,
 --        julia.herrera@univ.test, kevin.duarte@univ.test, lucia.ramirez@univ.test
 --   3. Ejecutar este archivo en el SQL Editor de Supabase (rol postgres).
+--   4. Opcional: ejecutar supabase/dev_seed_imagenes.sql para agregar avatares
+--      y fotos de demo (imágenes remotas ficticias) a perfiles y publicaciones.
 --
 -- Notas:
 --   * Los triggers de publicaciones/comentarios/votos/reportes fuerzan

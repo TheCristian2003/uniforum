@@ -300,10 +300,10 @@ class _Precio extends StatelessWidget {
       ),
       child: Text(
         '\$${numeroCorto(valor)} $moneda',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w800,
-          color: Color(0xFF3D2A00),
+          color: context.colors.onSurfaceVariant,
         ),
       ),
     );

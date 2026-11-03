@@ -353,7 +353,7 @@ class _AvatarPerfilGrande extends StatelessWidget {
                 child: SizedBox.expand(
                   child: tieneAvatar
                       ? Image.network(
-                          avatarUrl!,
+                          avatarUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, _, _) => _inicial(context, inicial),
                         )

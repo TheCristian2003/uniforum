@@ -35,6 +35,23 @@ void main() {
     expect(find.text('Nueva publicación'), findsOneWidget);
   });
 
+  testWidgets('MainShell oculta el FAB de publicar en la pestaña IA',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [currentUserProvider.overrideWithValue(null)],
+        child: const MaterialApp(home: MainShell(perfil: perfil)),
+      ),
+    );
+
+    expect(find.byIcon(Icons.add), findsOneWidget);
+
+    await tester.tap(find.text('IA').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.add), findsNothing);
+  });
+
   testWidgets('MainShell avisa y bloquea publicar si hay restricción',
       (tester) async {
     final restriccion = Restriccion(

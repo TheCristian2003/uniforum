@@ -196,7 +196,7 @@ class _Etiqueta extends StatelessWidget {
               color: context.colors.outline,
             ),
           ),
-          if (accion != null) accion!,
+          ?accion,
         ],
       ),
     );
@@ -1036,7 +1036,7 @@ class _CrearPublicacionScreenState
                   children: [
                     const _Etiqueta('Canal de destino'),
                     DropdownButtonFormField<String>(
-                      value: _canalId,
+                      initialValue: _canalId,
                       decoration: const InputDecoration(
                         hintText: 'Selecciona un canal',
                         prefixIcon: Icon(Icons.forum_outlined),
@@ -1062,7 +1062,7 @@ class _CrearPublicacionScreenState
                     const SizedBox(height: 12),
                     const _Etiqueta('Categoría'),
                     DropdownButtonFormField<int>(
-                      value: _categoriaId,
+                      initialValue: _categoriaId,
                       decoration: const InputDecoration(
                         hintText: 'Selecciona una categoría',
                         prefixIcon: Icon(Icons.label_outline),
@@ -1424,7 +1424,7 @@ class _CrearPublicacionScreenState
                                 const SizedBox(height: 2),
                                 Text(
                                   [
-                                    if (programaNombre != null) programaNombre,
+                                    ?programaNombre,
                                     if (sedeNombre != null) 'Sede $sedeNombre',
                                   ].join(' • '),
                                   style: TextStyle(

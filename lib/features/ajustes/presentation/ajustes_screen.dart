@@ -319,7 +319,7 @@ class _ResumenUsuario extends StatelessWidget {
                               ),
                               child: tieneAvatar
                                   ? Image.network(
-                                      avatarUrl!,
+                                      avatarUrl,
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, _, _) =>
                                           _inicial(context, inicial),

@@ -44,6 +44,7 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final mostrarPublicar = _index != 2;
     return Scaffold(
       body: Column(
         children: [
@@ -65,17 +66,20 @@ class _MainShellState extends ConsumerState<MainShell> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: _publicar,
-        backgroundColor: context.colors.ugYellow,
-        foregroundColor: context.colors.onPrimary,
-        elevation: 4,
-        shape: const CircleBorder(),
-        tooltip: 'Publicar',
-        child: const Icon(Icons.add, size: 30),
-      ),
+      floatingActionButton: mostrarPublicar
+          ? FloatingActionButton(
+              onPressed: _publicar,
+              backgroundColor: context.colors.ugYellow,
+              foregroundColor: context.colors.onPrimary,
+              elevation: 4,
+              shape: const CircleBorder(),
+              tooltip: 'Publicar',
+              child: const Icon(Icons.add, size: 30),
+            )
+          : null,
       bottomNavigationBar: _BottomNav(
         index: _index,
+        mostrarPublicar: mostrarPublicar,
         onSelect: (i) => setState(() => _index = i),
       ),
     );
@@ -154,10 +158,15 @@ class _NavDestino {
 }
 
 class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.index, required this.onSelect});
+  const _BottomNav({
+    required this.index,
+    required this.onSelect,
+    required this.mostrarPublicar,
+  });
 
   final int index;
   final ValueChanged<int> onSelect;
+  final bool mostrarPublicar;
 
   static const _destinos = [
     _NavDestino(
@@ -206,7 +215,7 @@ class _BottomNav extends StatelessWidget {
             children: [
               Expanded(child: _destino(context, 0)),
               Expanded(child: _destino(context, 1)),
-              const SizedBox(width: 72),
+              if (mostrarPublicar) const SizedBox(width: 72),
               Expanded(child: _destino(context, 2)),
               Expanded(child: _destino(context, 3)),
             ],

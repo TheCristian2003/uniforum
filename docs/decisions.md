@@ -249,13 +249,152 @@ Reglas para no repetir errores:
 - El detalle de la publicación muestra los metadatos y el feed resalta el precio
   en las ventas; la validación en SQL queda pendiente.
 
+## Imágenes y Storage (2026-10-12)
+
+- La migración `20261012020000_publication_images.sql` agrega `comentarios.imagenes`
+  y crea el bucket público `publicaciones`. Las políticas de Storage permiten
+  lectura pública y escritura, actualización y borrado solo dentro de la carpeta
+  `{uid}/` del dueño.
+- Límites por fila con `CHECK`: 3 imágenes en `publicaciones` y 1 en `comentarios`.
+- `ImagenesRepository` acepta jpg, jpeg, png y webp, arma el nombre con timestamp
+  y sufijo aleatorio para evitar colisiones y guarda la URL pública en la columna
+  `imagenes`. El feed y el detalle las muestran con `ImagenesAdjuntas`.
+- Pendiente: validar tamaño máximo y MIME en el backend y definir la limpieza de
+  archivos huérfanos al borrar una publicación o un comentario.
+
+## Perfil desde el registro, datos personales y privacidad (2026-10-13)
+
+- `20261013000000_perfil_desde_registro.sql`: el perfil se crea con alias, tipo de
+  perfil, programa y sede enviados en `raw_user_meta_data` durante el registro; si
+  faltan o no son válidos se aplican los valores por defecto.
+- `20261013010000_perfil_datos_personales.sql`: agrega `celular` (solo dígitos,
+  7 a 15) y `fecha_nacimiento` (no anterior a 1900).
+- `20261013020000_perfil_privacidad_datos.sql`: revoca el `SELECT` de tabla sobre
+  `perfiles`, concede solo las columnas públicas y expone los datos personales en
+  la vista `mi_perfil`, filtrada por `auth.uid()`. El perfil público no ve celular
+  ni fecha de nacimiento.
+
+## Modo oscuro y preferencias locales (2026-10-15)
+
+- `ThemeController` (`Notifier<ThemeMode>`) lee el modo desde `PreferencesService`
+  (clave `tema.modo`, valores `light`, `dark`, `system`) y lo guarda en
+  `shared_preferences` al cambiarlo.
+- Los colores se centralizan en `app_palette.dart` para ambos temas; los widgets
+  consumen `context.colors` y ya no usan `Color(0xFF...)` dispersos.
+  `app_colors.dart` quedó reemplazado.
+- Las preferencias se crean antes de `runApp` y se inyectan por Riverpod, así que
+  el tema elegido se aplica desde el primer frame.
+- Ajustes persiste además los flags `ajustes.*` (notificaciones e IA). Los
+  interruptores relacionados con IA son solo preferencia guardada mientras no
+  exista la Edge Function.
+
+## Seed de demo y lección de esquema (2026-10-15)
+
+- `supabase/dev_seed_demo_data.sql` crea perfiles, publicaciones, comentarios,
+  votos y reportes ficticios, y es idempotente.
+  `supabase/dev_seed_imagenes.sql` agrega avatares y fotos de demo y depende del
+  anterior. Ninguno se aplica en producción.
+- El primer seed (`85dedd4`) no coincidía con el esquema real (identificadores de
+  canales y de `maestra`, forma de los metadatos y sesión simulada) y falló al
+  ejecutarse. `79e0462` lo reescribió usando `canales.id`, subconsultas a `maestra`
+  y claims JWT para simular la sesión. Lección: validar el seed contra el esquema
+  aplicado, no contra el diagrama.
+
+## IA del Campus: contexto y cupo (2026-10-29)
+
+- La Edge Function `supabase/functions/campus-ai/index.ts` se autentica con el JWT
+  del usuario y consulta mediante RPC `security invoker`
+  (`buscar_contexto_ia`), de modo que RLS sigue aplicando y la función no
+  necesita la service-role key.
+- `buscar_contexto_ia` recupera hasta 12 publicaciones publicadas con sus
+  comentarios, filtrando por búsqueda de texto en español, canal y periodo
+  (`p_dias`). No devuelve `autor_id` ni alias: el modelo no recibe identidades.
+- `consumir_cupo_ia` aplica un cupo diario (20 por defecto, zona
+  `America/Bogota`) en la tabla `ia_uso`, que no tiene políticas RLS: solo la
+  función `security definer` la escribe y el cliente recibe el cupo restante.
+  El límite vive en `ia_config` (sin acceso para el cliente), de modo que no se
+  puede subir desde Flutter ni pasando parámetros a la RPC. El secreto
+  `IA_CUPO_HABILITADO=false` desactiva la comprobación durante pruebas y la
+  respuesta devuelve `restantes: null`.
+  No se guarda el texto de las preguntas ni de las respuestas.
+- Si no hay contexto, la función responde sin llamar al modelo solo cuando es un
+  resumen sin publicaciones; las preguntas generales siguen al modelo con un
+  contexto vacío. La búsqueda combina los términos con OR
+  (`20261031000000_ia_busqueda_or.sql`) para que una pregunta natural recupere
+  publicaciones que coincidan con cualquiera de sus palabras. Una pregunta
+  concreta se busca en el periodo y luego en todo el historial; solo las de
+  actividad general ("qué pasó", resumen, eventos, populares) usan las
+  publicaciones más recientes. Así se evita responder siempre con las mismas doce.
+- El contexto incluye `puntaje` y los detalles de `metadatos` (`inicio`, `fin`,
+  `lugar`, `precio`, `disponible`, `entregado`); las preguntas de votos ordenan
+  por puntaje. El prompt pide distinguir ventas (`Tipo: Venta`) de objetos
+  encontrados y comparar la fecha de los eventos con la fecha actual. La respuesta
+  solo devuelve las fuentes citadas con `[P#]` (máximo 4); sin citas, `fuentes`
+  queda vacío.
+- Los errores del proveedor se traducen a mensajes concretos (clave o permisos,
+  modelo inexistente, cuota de Google, filtros de contenido, tiempo agotado) y
+  se registran con su código HTTP en los logs de la función. Si el modelo falla,
+  se devuelve un error genérico y no se expone la respuesta del proveedor.
+- Latencia: `gemini-3.8-flash` razona antes de responder y agotaba el tiempo de
+  espera incluso con `thinkingLevel: "low"`. Por eso el modelo predeterminado es
+  `gemini-3.1-flash-lite` (capa gratuita); si no responde, no existe o Google
+  devuelve `429`/`5xx` (también "high demand" con `503`), se reintenta con
+  `gemini-3-flash-preview` (45 s). Cada intento registra modelo, código y duración
+  en los logs. Si el modelo no responde pero la pregunta era de objetos, se
+  devuelven las cifras calculadas en SQL con una nota de que la IA está ocupada.
+- Periodo y canales: el cliente deduce "hoy", "esta semana", "este mes" y "este
+  semestre" de la pregunta (`IaRepository.diasSugeridos`); el chip "Resumen de un
+  canal" abre un selector de canales y envía `canalId` y `modo: resumen`. La
+  función añade una nota al inicio cuando debe usar publicaciones fuera del
+  periodo pedido.
+- Asistente general: las preguntas simples (definiciones, explicaciones, cómo
+  hacer algo) se responden con conocimiento general, aclarando que no proviene
+  del campus. Las preguntas sobre el campus usan el contexto y citan fuentes. Si
+  no hay publicaciones relacionadas, la función ya no corta la respuesta: llama
+  al modelo con un contexto vacío. Los chips "Avisos importantes" y "Objetos
+  perdidos" envían su consulta directamente y "Buscar un tema" prepara el campo
+  de texto.
+- Memoria: el cliente envía los últimos 6 turnos (pregunta y respuesta) en
+  `historial` para que la IA entienda seguimientos ("¿y un ejemplo?"). El
+  servidor descarta turnos sin respuesta, recorta cada texto a 800 caracteres y
+  garantiza la alternancia usuario/modelo que exige Gemini. La memoria vive solo
+  en la conversación abierta; no se persiste ni se comparte entre sesiones.
+- Objetos perdidos/encontrados: solo `encontrado` guarda
+  `metadatos.entregado`. Para que la IA pueda responder conteos sin adivinar,
+  `20261030000000_ia_objetos_resumen.sql` añade `metadatos` al contexto y crea
+  `resumen_objetos_ia`, que cuenta encontrados, perdidos, encontrados entregados
+  y el total histórico. Si esa RPC no está disponible, se calcula con consultas
+  directas a `publicaciones`/`maestra` bajo RLS; como último recurso se usa un
+  conteo aproximado del contexto recuperado. Los conteos usan la fecha de
+  creación de la publicación, no una fecha de entrega (no existe todavía); el
+  prompt recibe esas cifras como datos verificados.
+- La clave de Gemini vive únicamente como secreto de la Edge Function. El modelo
+  por defecto es `gemini-3.1-flash-lite` (`MODELO_IA` lo cambia) y el cupo diario se
+  ajusta en `public.ia_config` desde SQL.
+- Decisión de alcance: la primera versión atiende preguntas y resúmenes por canal
+  o periodo ("¿Qué me perdí?"). El asistente de redacción y la moderación
+  asistida quedan para después de conectar y medir esta función.
+- Cliente: `lib/data/repositories/ia_repository.dart` invoca `campus-ai` y
+  traduce los errores de `functions_client` a mensajes en español. La pestaña IA
+  (`lib/features/ia/presentation/ia_screen.dart`) mantiene la conversación en
+  memoria (no se persiste), muestra las fuentes usadas y permite abrirlas en el
+  detalle de la publicación. El chip "¿Qué me perdí esta semana?" envía
+  `modo: resumen` con `dias: 7`; el cupo restante solo se conoce tras una
+  respuesta exitosa, así que antes de la primera consulta no se muestra. El FAB
+  de publicar se oculta en esta pestaña porque tapaba el campo de texto.
+
 ## Decisiones pendientes
 
 - Imponer validaciones SQL de `metadatos` (hoy solo en Flutter) una vez
   estabilizado el formato por tipo.
 - Definir el operador que asignará roles privilegiados (`app_role`).
 - Definir si el contenido oculto debe ser visible para su autor (hoy sí lo es).
-- Definir la política de imágenes de Storage: cantidad, tamaño, MIME y rutas.
+- Definir tamaño máximo y MIME de las imágenes en el backend; la cantidad (3/1) y
+  la ruta (`{uid}/archivo`) ya están definidas.
+- Desplegar la Edge Function `campus-ai` con `GEMINI_API_KEY` y aplicar la
+  migración `20261029000000_ia_contexto_y_cupo.sql` en el proyecto remoto (el
+  cliente ya invoca la función).
+- Ranking semanal y preferencias de Ajustes que aún no tienen efecto.
 - Confirmar la identidad visual/nombre final. El archivo `docs/design/DESIGN.md` se trata
   como referencia visual y no establece nombre comercial ni identidad final.
 - Confirmar el mecanismo de confirmación de correo en Supabase Auth para el

@@ -18,6 +18,7 @@ import '../data/repositories/catalogo_repository.dart';
 import '../data/repositories/comentarios_repository.dart';
 import '../data/repositories/gamificacion_repository.dart';
 import '../data/repositories/imagenes_repository.dart';
+import '../data/repositories/ia_repository.dart';
 import '../data/repositories/moderacion_repository.dart';
 import '../data/repositories/perfil_repository.dart';
 import '../data/repositories/publicaciones_repository.dart';
@@ -72,6 +73,11 @@ final votosRepositoryProvider = Provider<VotosRepository>(
 
 final reportesRepositoryProvider = Provider<ReportesRepository>(
   (ref) => ReportesRepository(ref.watch(supabaseClientProvider)),
+);
+
+/// IA del Campus (Edge Function `campus-ai`).
+final iaRepositoryProvider = Provider<IaRepository>(
+  (ref) => IaRepository(ref.watch(supabaseClientProvider)),
 );
 
 final moderacionRepositoryProvider = Provider<ModeracionRepository>(

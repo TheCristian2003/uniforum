@@ -68,6 +68,7 @@ El diagrama de Lucidchart es la referencia visual. Las tablas previstas son:
 | `eventos_puntos` | Registro auditable de puntos ganados. |
 | `insignias` | Catálogo de distintivos. |
 | `insignias_usuario` | Distintivos obtenidos por cada perfil. |
+| `restricciones_usuario` | Restricciones temporales o permanentes aplicadas por moderación (añadida en una migración posterior). |
 
 ### Implementación inicial del esquema
 
@@ -86,6 +87,14 @@ corrige la idempotencia de los puntos por voto para que un evento dependa del
 votante y el contenido, no del id del voto. Las pruebas de integridad y RLS
 están en `supabase/tests/integrity_and_rls_test.sql` y se ejecutan contra una
 instancia de desarrollo.
+
+El directorio `supabase/migrations/` reúne 15 migraciones aditivas: esquema
+inicial, endurecimiento de funciones, revocación de privilegios, optimización de
+índices y RLS, idempotencia de votos, moderación, insignias, imágenes, perfil
+desde el registro, datos personales, privacidad del perfil, lectura anónima de
+catálogos, contexto/cupo de la IA, resumen de objetos y búsqueda OR para la IA.
+Cada una debe aplicarse en orden sobre desarrollo; producción no se toca hasta un
+release.
 
 Las credenciales se mantienen fuera del repositorio en archivos `.env` locales.
 Al registrarse, el cliente envía el nombre/alias, el tipo de perfil y el
@@ -291,8 +300,11 @@ Implementado y comprobado con `flutter analyze` y `flutter test`:
   (precio en COP, lugar opcional, disponible), `perdido` (fecha, lugar y
   recompensa opcional), `encontrado` (fecha, lugar y entregado) y `evento`
   (inicio, fin opcional, lugar y enlace http/https opcional). El detalle de la
-  publicación muestra estos datos y el feed resalta el precio de las ventas. Las
-  imágenes llegan en una etapa posterior.
+  publicación muestra estos datos y el feed resalta el precio de las ventas.
+- Imágenes: hasta 3 por publicación y 1 por comentario, subidas a Supabase
+  Storage en el bucket público `publicaciones`, dentro de la carpeta `{uid}/` del
+  autor. Las políticas de Storage solo permiten escribir en la carpeta propia y
+  los formatos aceptados son jpg, jpeg, png y webp.
 - Detalle de publicación con comentarios y votos: comentar, votar a favor/en
   contra (sin poder votar el contenido propio) y marcar comentarios como
   solución (solo el autor de la publicación, vía RPC). El alias de las
@@ -304,19 +316,45 @@ Implementado y comprobado con `flutter analyze` y `flutter test`:
   **eliminar** el contenido y **restringir temporal o permanentemente** al
   autor (1/7/30 días o permanente). Un usuario restringido no puede publicar ni
   comentar: las políticas RLS lo bloquean y la app lo avisa con un banner.
-- Tema Flutter con los colores institucionales de `docs/design/DESIGN.md`.
+- Tema claro y oscuro con los colores institucionales de
+  `docs/design/DESIGN.md`. Los colores se centralizan en `lib/core/theme/app_palette.dart`
+  y el modo elegido se guarda en el dispositivo (`tema.modo`), por lo que se
+  conserva al reabrir la app. La pantalla de Ajustes guarda además preferencias
+  de notificaciones e IA en `shared_preferences`.
+- Perfil: perfil público con alias, verificación, estadísticas, nivel y
+  distintivos; edición de perfil y datos personales opcionales (celular y fecha
+  de nacimiento) legibles solo por su dueño mediante la vista `mi_perfil`.
 - Gamificación: los puntos por acción (publicación +2, comentario +1, votos
   positivos +3/+2 y solución +15) se calculan e idempotentes en SQL. El perfil
   muestra puntos, nivel (Novato/Activo/Referente/Leyenda), estadísticas reales y
   los distintivos, que el backend otorga automáticamente para los logros
   verificables (ver `docs/decisions.md`).
+- Datos de demostración: `supabase/dev_seed_demo_data.sql` (perfiles,
+  publicaciones, comentarios, votos y reportes ficticios) y
+  `supabase/dev_seed_imagenes.sql` (avatares y fotos de demo). Son idempotentes
+  y solo para desarrollo.
+
+Fuera del cliente, `supabase/functions/campus-ai/` contiene la Edge Function de
+la IA del Campus: autentica el JWT, recupera contexto con
+`buscar_contexto_ia` (bajo RLS), aplica el cupo diario con `consumir_cupo_ia` y
+llama a Gemini con una clave que solo vive como secreto. También calcula conteos
+de objetos perdidos/encontrados con `resumen_objetos_ia`. La pestaña IA ya la
+invoca mediante `lib/data/repositories/ia_repository.dart` y muestra la
+respuesta con sus fuentes. Los pasos de despliegue están en
+`docs/supabase_setup.md`.
 
 Pendiente:
 
+- Aplicar `20261031000000_ia_busqueda_or.sql` en el proyecto remoto y
+  redesplegar `campus-ai`. Sin esa migración la IA funciona, pero una pregunta
+  con varias palabras puede no encontrar publicaciones que solo coinciden
+  parcialmente.
 - Probar el registro/login/onboarding contra el proyecto de desarrollo con
   usuarios reales y confirmar el mecanismo de confirmación de correo en
   Supabase Auth.
-- Las imágenes de las publicaciones y la validación de metadatos en SQL (hoy
-  solo se validan en el formulario de Flutter).
-- Asignación de `app_metadata.app_role` desde backend y tipografía Plus Jakarta
+- Validar los metadatos en SQL (hoy solo se validan en el formulario de Flutter)
+  y limitar tamaño y MIME de las imágenes en el backend.
+- Asignación de `app_metadata.app_role` desde backend (sin eso no hay avisos
+  institucionales ni moderación reales), ranking semanal y tipografía Plus Jakarta
   Sans.
+- Ejecutar `supabase/dev_seed_imagenes.sql` si aún no se ha hecho.
