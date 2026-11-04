@@ -113,7 +113,9 @@ Reglas para no repetir errores:
 - Se reutilizan `PublicacionCard`, `LoadingView`, `EmptyView` y `ErrorView`, con
   `RefreshIndicator` para recargar, en el feed y en el detalle de canal. Las
   publicaciones ocupan todo el ancho, sin sombra ni tarjeta redondeada, y se
-  separan por una línea casi invisible, al estilo de un feed social.
+  separan por una línea casi invisible, al estilo de un feed social. El detalle
+  de publicación y los comentarios siguen el mismo criterio; las imágenes usan
+  todo el ancho disponible y crecen de forma proporcional.
 - La fecha relativa se centraliza en `core/utils/fecha_relativa.dart` y el mapeo
   de iconos de canal en `core/utils/icono_canal.dart`.
 

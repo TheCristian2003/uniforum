@@ -14,7 +14,9 @@ class ImagenSeleccionada {
 
 /// Muestra las imágenes adjuntas de una publicación o comentario.
 ///
-/// Con una sola imagen se muestra a lo ancho; con varias, una fila desplazable.
+/// Con una sola imagen se muestra a todo el ancho disponible, con una altura
+/// proporcional y acotada; con varias, una fila desplazable con miniaturas
+/// algo más grandes.
 class ImagenesAdjuntas extends StatelessWidget {
   const ImagenesAdjuntas({super.key, required this.urls, this.radio = 14});
 
@@ -25,16 +27,27 @@ class ImagenesAdjuntas extends StatelessWidget {
   Widget build(BuildContext context) {
     if (urls.isEmpty) return const SizedBox.shrink();
     if (urls.length == 1) {
-      return _Imagen(url: urls.first, alto: 200, radio: radio);
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final ancho = constraints.maxWidth;
+          final alto = (ancho * 0.62).clamp(200.0, 340.0);
+          return _Imagen(
+            url: urls.first,
+            ancho: ancho,
+            alto: alto,
+            radio: radio,
+          );
+        },
+      );
     }
     return SizedBox(
-      height: 130,
+      height: 180,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: urls.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (_, indice) =>
-            _Imagen(url: urls[indice], ancho: 130, alto: 130, radio: radio),
+            _Imagen(url: urls[indice], ancho: 180, alto: 180, radio: radio),
       ),
     );
   }

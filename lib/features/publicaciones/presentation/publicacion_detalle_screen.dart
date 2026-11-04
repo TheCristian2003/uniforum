@@ -561,7 +561,7 @@ class _PublicacionDetalleScreenState
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            padding: const EdgeInsets.only(top: 16, bottom: 24),
             children: [
               _TarjetaPublicacion(
                 publicacion: publicacion,
@@ -581,17 +581,23 @@ class _PublicacionDetalleScreenState
                       ),
               ),
               const SizedBox(height: 24),
-              _EncabezadoComentarios(
-                total: totalComentarios,
-                orden: _orden,
-                onCambiarOrden: (orden) => setState(() => _orden = orden),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _EncabezadoComentarios(
+                  total: totalComentarios,
+                  orden: _orden,
+                  onCambiarOrden: (orden) => setState(() => _orden = orden),
+                ),
               ),
               const SizedBox(height: 12),
               comentarios.when(
                 data: (items) {
                   if (items.isEmpty) {
                     return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 40,
+                      ),
                       child: EmptyView(
                         icono: Icons.forum_outlined,
                         titulo: 'Aún no hay comentarios',
@@ -645,11 +651,14 @@ class _PublicacionDetalleScreenState
                   );
                 },
                 loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 40),
                   child: LoadingView(mensaje: 'Cargando comentarios…'),
                 ),
                 error: (_, _) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 32,
+                  ),
                   child: ErrorView(
                     mensaje: 'No se pudieron cargar los comentarios.',
                     onReintentar: () => ref.invalidate(
@@ -715,28 +724,20 @@ class _TarjetaPublicacion extends StatelessWidget {
       if (publicacion.tipoNombre != null) publicacion.tipoNombre!,
     ].join(' • ');
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.colors.outlineVariant.withValues(alpha: 0.45),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: context.colors.outline.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+        border: Border(
+          bottom: BorderSide(
+            color: context.colors.outlineVariant.withValues(alpha: 0.28),
           ),
-        ],
+        ),
       ),
-      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(height: 4, color: tipo.color),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -836,15 +837,8 @@ class _TarjetaPublicacion extends StatelessWidget {
                   _DetalleMetadatos(metadatos: publicacion.metadatos),
                 ],
                 const SizedBox(height: 16),
-                Container(
+                Padding(
                   padding: const EdgeInsets.only(top: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: context.colors.outlineVariant.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
                   child: Row(
                     children: [
                       ControlVoto(
@@ -1127,16 +1121,18 @@ class _ComentarioTile extends StatelessWidget {
     final alias = comentario.autorAlias ?? 'Usuario';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
-        color: context.colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: comentario.esSolucion
-              ? context.colors.ugAguaMarina
-              : context.colors.outlineVariant.withValues(alpha: 0.4),
-          width: comentario.esSolucion ? 2 : 1,
+        color: comentario.esSolucion
+            ? context.colors.ugAguaMarina.withValues(alpha: 0.06)
+            : null,
+        border: Border(
+          left: comentario.esSolucion
+              ? BorderSide(color: context.colors.ugAguaMarina, width: 3)
+              : BorderSide.none,
+          bottom: BorderSide(
+            color: context.colors.outlineVariant.withValues(alpha: 0.28),
+          ),
         ),
       ),
       child: Column(
