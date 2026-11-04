@@ -6,10 +6,8 @@ import '../../../../core/utils/fecha_relativa.dart';
 import '../../../../data/models/publicacion.dart';
 import '../../../publicaciones/presentation/widgets/imagenes_adjuntas.dart';
 
-/// Tarjeta reutilizable para mostrar una publicación en el feed o en un canal.
-///
-/// Sigue el diseño de las tarjetas de "Inicio (Feed)": cabecera con autor,
-/// canal y tipo, contenido y una barra inferior con votos y comentarios.
+/// Publicación a ancho completo, separada por una línea sutil como en un feed
+/// social. Se reutiliza en Inicio y en el detalle de un canal.
 class PublicacionCard extends StatelessWidget {
   const PublicacionCard({
     super.key,
@@ -32,32 +30,20 @@ class PublicacionCard extends StatelessWidget {
     final tipo = estiloTipo(context, publicacion.tipoCodigo);
     final precio = publicacion.metadatos.precio;
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: context.colors.outline.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        border: Border(
+          bottom: BorderSide(
+            color: context.colors.outlineVariant.withValues(alpha: 0.28),
           ),
-        ],
+        ),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: context.colors.outlineVariant.withValues(alpha: 0.45),
-              ),
-            ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -101,16 +87,9 @@ class PublicacionCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   ImagenesAdjuntas(urls: publicacion.imagenes, radio: 10),
                 ],
-                const SizedBox(height: 12),
-                Container(
+                const SizedBox(height: 10),
+                Padding(
                   padding: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: context.colors.outlineVariant.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
                   child: Row(
                     children: [
                       _PillVotos(valor: publicacion.puntaje),

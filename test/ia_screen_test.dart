@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uniforum/core/providers.dart';
 import 'package:uniforum/core/theme/app_theme.dart';
+import 'package:uniforum/data/models/adjunto_ia.dart';
 import 'package:uniforum/data/models/canal.dart';
 import 'package:uniforum/data/models/perfil.dart';
 import 'package:uniforum/data/models/respuesta_ia.dart';
@@ -35,6 +36,7 @@ class _FakeIaRepository extends IaRepository {
   String? ultimoCanalId;
   String? ultimaPregunta;
   List<MensajeHistorialIA>? ultimoHistorial;
+  List<AdjuntoIA>? ultimosAdjuntos;
 
   @override
   Future<RespuestaIA> consultar({
@@ -43,6 +45,7 @@ class _FakeIaRepository extends IaRepository {
     int dias = 30,
     bool resumen = false,
     List<MensajeHistorialIA> historial = const [],
+    List<AdjuntoIA> adjuntos = const [],
   }) async {
     llamadas++;
     ultimoResumen = resumen;
@@ -50,6 +53,7 @@ class _FakeIaRepository extends IaRepository {
     ultimoCanalId = canalId;
     ultimaPregunta = pregunta;
     ultimoHistorial = historial;
+    ultimosAdjuntos = adjuntos;
     if (error != null) throw error!;
     return respuesta!;
   }
@@ -186,6 +190,10 @@ void main() {
   test('diasSugeridos interpreta el periodo de la pregunta', () {
     expect(IaRepository.diasSugeridos('¿Qué pasó hoy?'), 1);
     expect(IaRepository.diasSugeridos('¿Qué me perdí esta semana?'), 7);
+    expect(
+      IaRepository.diasSugeridos('¿Qué se publicó en los últimos 7 días?'),
+      7,
+    );
     expect(IaRepository.diasSugeridos('resumen del mes'), 30);
     expect(IaRepository.diasSugeridos('lo del semestre'), 90);
     expect(IaRepository.diasSugeridos('examen de cálculo'), 30);
@@ -280,5 +288,88 @@ void main() {
       find.textContaining('Hay tres entregados este mes.', findRichText: true),
       findsOneWidget,
     );
+  });
+
+  testWidgets('la IA oculta las comillas invertidas del código', (tester) async {
+    final repo = _FakeIaRepository(
+      respuesta: const RespuestaIA(
+        texto: 'Ejecuta `flutter test`.\n\n'
+            '```dart\nvoid main() {}\n```\n\nFin.',
+        fuentes: [],
+        restantes: 13,
+      ),
+    );
+
+    await tester.pumpWidget(_app(repo));
+    await _preguntar(tester, '¿Cómo pruebo Dart?');
+
+    expect(find.textContaining('`', findRichText: true), findsNothing);
+    expect(
+      find.textContaining('Ejecuta flutter test.', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('void main() {}', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.byType(SelectableText), findsOneWidget);
+  });
+
+  testWidgets('un enlace pide confirmación y no duplica la URL',
+      (tester) async {
+    final repo = _FakeIaRepository(
+      respuesta: const RespuestaIA(
+        texto: '[Documentación de Dart](https://dart.dev/guides) '
+            '(https://dart.dev/guides)',
+        fuentes: [],
+        restantes: 12,
+      ),
+    );
+
+    await tester.pumpWidget(_app(repo));
+    await _preguntar(tester, '¿Dónde está la documentación de Dart?');
+
+    expect(
+      find.textContaining('(https://dart.dev/guides)', findRichText: true),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.textContaining('Documentación de Dart', findRichText: true),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Abrir enlace externo'), findsOneWidget);
+    expect(
+      find.textContaining('te llevará fuera de UniForum', findRichText: true),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Abrir enlace externo'), findsNothing);
+  });
+
+  testWidgets('la IA no repite una URL entre corchetes y paréntesis',
+      (tester) async {
+    final repo = _FakeIaRepository(
+      respuesta: const RespuestaIA(
+        texto: 'Enlace: [https://dart.dev/guides] '
+            '(https://dart.dev/guides)',
+        fuentes: [],
+        restantes: 11,
+      ),
+    );
+
+    await tester.pumpWidget(_app(repo));
+    await _preguntar(tester, 'Dame el enlace de Dart.');
+
+    final editable = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byType(SelectableText),
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(editable.controller.text.trim(), 'Enlace: https://dart.dev/guides');
   });
 }

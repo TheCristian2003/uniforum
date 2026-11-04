@@ -111,7 +111,9 @@ Reglas para no repetir errores:
 - El repositorio filtra explícitamente por estado `publicado`, además del filtro
   de RLS, para no mezclar borradores/ocultos.
 - Se reutilizan `PublicacionCard`, `LoadingView`, `EmptyView` y `ErrorView`, con
-  `RefreshIndicator` para recargar, en el feed y en el detalle de canal.
+  `RefreshIndicator` para recargar, en el feed y en el detalle de canal. Las
+  publicaciones ocupan todo el ancho, sin sombra ni tarjeta redondeada, y se
+  separan por una línea casi invisible, al estilo de un feed social.
 - La fecha relativa se centraliza en `core/utils/fecha_relativa.dart` y el mapeo
   de iconos de canal en `core/utils/icono_canal.dart`.
 
@@ -285,8 +287,11 @@ Reglas para no repetir errores:
 - Las preferencias se crean antes de `runApp` y se inyectan por Riverpod, así que
   el tema elegido se aplica desde el primer frame.
 - Ajustes persiste además los flags `ajustes.*` (notificaciones e IA). Los
-  interruptores relacionados con IA son solo preferencia guardada mientras no
-  exista la Edge Function.
+  interruptores de IA siguen siendo preferencias locales; la Edge Function existe
+  y aplica su propio cupo diario.
+- El login y el registro se fuerzan a `ThemeMode.light` mientras no hay sesión:
+  así el formulario no mezcla fondos claros con textos o controles del tema
+  oscuro. El tema elegido se aplica al entrar a la aplicación autenticada.
 
 ## Seed de demo y lección de esquema (2026-10-15)
 
@@ -322,9 +327,11 @@ Reglas para no repetir errores:
   contexto vacío. La búsqueda combina los términos con OR
   (`20261031000000_ia_busqueda_or.sql`) para que una pregunta natural recupere
   publicaciones que coincidan con cualquiera de sus palabras. Una pregunta
-  concreta se busca en el periodo y luego en todo el historial; solo las de
-  actividad general ("qué pasó", resumen, eventos, populares) usan las
-  publicaciones más recientes. Así se evita responder siempre con las mismas doce.
+  concreta se busca en el periodo y luego en todo el historial; las preguntas de
+  actividad general ("qué se publicó en los últimos 7 días", "qué pasó", resumen,
+  eventos, populares) usan directamente las publicaciones más recientes y no se
+  sustituyen por coincidencias antiguas. Así se evita responder siempre con las
+  mismas doce o decir que no hubo actividad cuando sí la hubo.
 - El contexto incluye `puntaje` y los detalles de `metadatos` (`inicio`, `fin`,
   `lugar`, `precio`, `disponible`, `entregado`); las preguntas de votos ordenan
   por puntaje. El prompt pide distinguir ventas (`Tipo: Venta`) de objetos
@@ -378,10 +385,27 @@ Reglas para no repetir errores:
   traduce los errores de `functions_client` a mensajes en español. La pestaña IA
   (`lib/features/ia/presentation/ia_screen.dart`) mantiene la conversación en
   memoria (no se persiste), muestra las fuentes usadas y permite abrirlas en el
-  detalle de la publicación. El chip "¿Qué me perdí esta semana?" envía
-  `modo: resumen` con `dias: 7`; el cupo restante solo se conoce tras una
-  respuesta exitosa, así que antes de la primera consulta no se muestra. El FAB
-  de publicar se oculta en esta pestaña porque tapaba el campo de texto.
+  detalle de la publicación. Las respuestas se muestran con `SelectableText.rich`
+  para poder seleccionarlas y copiarlas; el texto admite negritas, código en línea
+  (sin mostrar las comillas invertidas) y enlaces. Los enlaces solo abren con
+  `url_launcher` después de una advertencia que avisa de que saldrán de la app y
+  pide confirmación. La app fija `locale: es` con `flutter_localizations`, así
+  que el menú de selección (copiar, seleccionar todo) aparece en español.
+- Adjuntos y voz: el botón de adjuntar acepta hasta 3 archivos (6 MB cada uno y
+  8 MB en total) en PDF, imágenes, audio o texto, con un solo audio por consulta;
+  el micrófono graba hasta 2
+  minutos en M4A. Los archivos viajan en base64 con la consulta, se validan en la
+  Edge Function y se pasan a Gemini como partes multimodales (el texto se extrae
+  en el servidor). No se guardan en Storage ni en la base; por eso un seguimiento
+  depende de la respuesta anterior, no del archivo original. Si la pregunta no
+  menciona el campus, no se incluye el contexto de publicaciones para que el
+  modelo no responda sobre el feed e ignore el archivo. La respuesta incluye
+  `adjuntosRecibidos`, y el cliente avisa si el servidor desplegado no procesó
+  los archivos.
+  El chip "¿Qué me perdí esta semana?" envía `modo: resumen` con `dias: 7`; el
+  cupo restante solo se conoce tras una respuesta exitosa, así que antes de la
+  primera consulta no se muestra. El FAB de publicar se oculta en esta pestaña
+  porque tapaba el campo de texto.
 
 ## Decisiones pendientes
 

@@ -46,19 +46,33 @@ class CanalDetalleScreen extends ConsumerWidget {
           onRefresh: () => _refrescar(ref),
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 16, bottom: 24),
             children: [
-              _CabeceraCanal(canal: canal, tipoCodigo: tipoCodigo),
-              const SizedBox(height: 20),
-              const Text(
-                'Publicaciones',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _CabeceraCanal(canal: canal, tipoCodigo: tipoCodigo),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Publicaciones',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
               publicaciones.when(
                 data: (items) => items.isEmpty
                     ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 32,
+                        ),
                         child: EmptyView(
                           icono: Icons.dynamic_feed_outlined,
                           titulo: 'Este canal está vacío',
@@ -69,39 +83,39 @@ class CanalDetalleScreen extends ConsumerWidget {
                     : Column(
                         children: [
                           for (final publicacion in items)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: PublicacionCard(
-                                publicacion: publicacion,
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => PublicacionDetalleScreen(
-                                      publicacion: publicacion,
-                                    ),
+                            PublicacionCard(
+                              publicacion: publicacion,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => PublicacionDetalleScreen(
+                                    publicacion: publicacion,
                                   ),
                                 ),
-                                onTapAutor:
-                                    (publicacion.anonimo ||
-                                        publicacion.autorId == null ||
-                                        publicacion.autorId == miId)
-                                    ? null
-                                    : () => Navigator.of(context).push(
-                                        MaterialPageRoute<void>(
-                                          builder: (_) => PerfilUsuarioScreen(
-                                            usuarioId: publicacion.autorId!,
-                                          ),
+                              ),
+                              onTapAutor:
+                                  (publicacion.anonimo ||
+                                      publicacion.autorId == null ||
+                                      publicacion.autorId == miId)
+                                  ? null
+                                  : () => Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => PerfilUsuarioScreen(
+                                          usuarioId: publicacion.autorId!,
                                         ),
                                       ),
-                              ),
+                                    ),
                             ),
                         ],
                       ),
                 loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 48),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 48),
                   child: LoadingView(mensaje: 'Cargando publicaciones…'),
                 ),
                 error: (_, _) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 40,
+                  ),
                   child: ErrorView(
                     mensaje: 'No se pudieron cargar las publicaciones.',
                     onReintentar: () => ref

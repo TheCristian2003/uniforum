@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/adjunto_ia.dart';
 import '../models/respuesta_ia.dart';
 
 /// Error legible de la IA del Campus. Las vistas muestran [mensaje] tal cual.
@@ -38,13 +39,15 @@ class IaRepository {
   }
 
   /// Envía una pregunta o pide un resumen. `resumen` activa el modo
-  /// "¿Qué me perdí?" para el canal y el periodo indicados.
+  /// "¿Qué me perdí?" para el canal y el periodo indicados. Los [adjuntos]
+  /// viajan con el turno actual; no se guardan en la base.
   Future<RespuestaIA> consultar({
     required String pregunta,
     String? canalId,
     int dias = 30,
     bool resumen = false,
     List<MensajeHistorialIA> historial = const [],
+    List<AdjuntoIA> adjuntos = const [],
   }) async {
     final diasEfectivos = diasSugeridos(pregunta, predeterminado: dias);
     try {
@@ -57,6 +60,8 @@ class IaRepository {
           'canalId': ?canalId,
           if (historial.isNotEmpty)
             'historial': [for (final mensaje in historial) mensaje.toJson()],
+          if (adjuntos.isNotEmpty)
+            'adjuntos': [for (final adjunto in adjuntos) adjunto.toJson()],
         },
       );
 
@@ -69,6 +74,16 @@ class IaRepository {
       final texto = (mapa['respuesta'] as String?)?.trim() ?? '';
       if (texto.isEmpty) {
         throw const IaException('La IA no devolvió texto. Intenta reformular.');
+      }
+
+      if (adjuntos.isNotEmpty) {
+        final recibidos = (mapa['adjuntosRecibidos'] as num?)?.toInt() ?? 0;
+        if (recibidos < adjuntos.length) {
+          throw const IaException(
+            'El servidor no recibió los adjuntos. Redespliega la función '
+            'campus-ai con la versión más reciente e inténtalo de nuevo.',
+          );
+        }
       }
 
       final fuentes = (mapa['fuentes'] as List? ?? const [])

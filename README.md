@@ -339,9 +339,11 @@ la IA del Campus: autentica el JWT, recupera contexto con
 `buscar_contexto_ia` (bajo RLS), aplica el cupo diario con `consumir_cupo_ia` y
 llama a Gemini con una clave que solo vive como secreto. También calcula conteos
 de objetos perdidos/encontrados con `resumen_objetos_ia`. La pestaña IA ya la
-invoca mediante `lib/data/repositories/ia_repository.dart` y muestra la
-respuesta con sus fuentes. Los pasos de despliegue están en
-`docs/supabase_setup.md`.
+invoca mediante `lib/data/repositories/ia_repository.dart`, muestra la respuesta
+con sus fuentes y permite dictar/grabar audio, adjuntar PDF, imágenes, audio o
+texto, y analizarlos con el modelo. Los archivos viajan con la consulta y no se
+guardan en Storage. Hay ejemplos en `docs/ejemplos_ia/` (`silabo.pdf` y
+`notas.csv`). Los pasos de despliegue están en `docs/supabase_setup.md`.
 
 Pendiente:
 

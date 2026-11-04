@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/providers.dart';
@@ -20,12 +21,23 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modo = ref.watch(themeControllerProvider);
+    // Login y registro se muestran siempre en claro; el tema elegido solo
+    // aplica cuando ya hay una sesión activa.
+    final usuario = configured ? ref.watch(currentUserProvider) : null;
+    final modoEfectivo = configured && usuario != null ? modo : ThemeMode.light;
     return MaterialApp(
       title: 'Vybe',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: modo,
+      themeMode: modoEfectivo,
+      locale: const Locale('es'),
+      supportedLocales: const [Locale('es'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: configured ? const _AuthGate() : const _ConfigMissingScreen(),
     );
   }

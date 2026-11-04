@@ -131,12 +131,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _margen(
-                feed.when(
-                  data: (items) {
-                    final filtradas = _filtrar(items);
-                    if (filtradas.isEmpty) {
-                      return Padding(
+              feed.when(
+                data: (items) {
+                  final filtradas = _filtrar(items);
+                  if (filtradas.isEmpty) {
+                    return _margen(
+                      Padding(
                         padding: const EdgeInsets.symmetric(vertical: 32),
                         child: EmptyView(
                           icono: Icons.dynamic_feed_outlined,
@@ -149,33 +149,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               : 'No hay publicaciones que coincidan '
                                     'con este filtro.',
                         ),
-                      );
-                    }
-                    return Column(
-                      children: [
-                        for (final publicacion in filtradas)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: PublicacionCard(
-                              publicacion: publicacion,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => PublicacionDetalleScreen(
-                                    publicacion: publicacion,
-                                  ),
-                                ),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: [
+                      for (final publicacion in filtradas)
+                        PublicacionCard(
+                          publicacion: publicacion,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => PublicacionDetalleScreen(
+                                publicacion: publicacion,
                               ),
-                              onTapAutor: _abrirAutor(publicacion),
                             ),
                           ),
-                      ],
-                    );
-                  },
-                  loading: () => const Padding(
+                          onTapAutor: _abrirAutor(publicacion),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => _margen(
+                  const Padding(
                     padding: EdgeInsets.symmetric(vertical: 48),
                     child: LoadingView(mensaje: 'Cargando publicaciones…'),
                   ),
-                  error: (_, _) => Padding(
+                ),
+                error: (_, _) => _margen(
+                  Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: ErrorView(
                       mensaje: 'No se pudo cargar el feed.',

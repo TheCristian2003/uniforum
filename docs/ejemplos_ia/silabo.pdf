@@ -1,0 +1,60 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 923 >>
+stream
+BT
+/F1 12 Tf
+50 780 Td
+16 TL
+(SILABO - PROGRAMACION II) Tj T*
+(Periodo academico: 2026-2) Tj T*
+(Docente: Docente de ejemplo) Tj T*
+() Tj T*
+(DESCRIPCION) Tj T*
+(Curso de programacion orientada a objetos, estructuras de datos) Tj T*
+(y desarrollo de proyectos pequenos en Dart.) Tj T*
+() Tj T*
+(EVALUACION) Tj T*
+(Parcial 1: 20% - semana 8 - 18 de septiembre de 2026) Tj T*
+(Parcial 2: 20% - semana 14 - 6 de noviembre de 2026) Tj T*
+(Talleres: 20% - entregas cada dos semanas) Tj T*
+(Proyecto final: 30% - entrega 27 de noviembre de 2026) Tj T*
+(Participacion: 10%) Tj T*
+() Tj T*
+(FECHAS DE ENTREGA) Tj T*
+(Taller 1: 5 de septiembre de 2026) Tj T*
+(Taller 2: 19 de septiembre de 2026) Tj T*
+(Taller 3: 10 de octubre de 2026) Tj T*
+(Proyecto final: 27 de noviembre de 2026) Tj T*
+() Tj T*
+(REGLAS) Tj T*
+(Las entregas tardias descuentan 10% por dia.) Tj T*
+(El proyecto se sustenta en la ultima semana de clases.) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1285
+%%EOF

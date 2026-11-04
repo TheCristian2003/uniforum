@@ -39,6 +39,12 @@ dependencies:
   flutter_riverpod: ^3.4.3
   image_picker: ^1.1.2
   shared_preferences: ^2.3.3
+  url_launcher: ^6.3.3
+  flutter_localizations:
+    sdk: flutter
+  record: ^7.1.2
+  file_picker: ^13.3.2
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

@@ -186,6 +186,19 @@ modelo rechaza el campo, la función reintenta sin él y lo recuerda mientras la
 instancia siga viva. Gemini 3.8 Flash no permite apagar del todo el
 razonamiento.
 
+La pestaña IA permite adjuntar hasta 3 archivos por consulta (máximo 6 MB por
+archivo y 8 MB en total): PDF, imágenes JPEG/PNG/WebP/HEIC, audio
+M4A/MP3/WAV/OGG/FLAC/AAC y texto TXT/MD/CSV/JSON, con un solo audio por
+consulta. El micrófono graba hasta 2
+minutos en M4A y el audio se adjunta a la consulta. La Edge Function valida tipo
+y tamaño, envía PDF/imágenes/audio a Gemini como contenido multimodal y extrae
+el texto de los archivos de texto; los adjuntos no se guardan en Storage ni en la
+base. En Android se requiere `RECORD_AUDIO` y en iOS
+`NSMicrophoneUsageDescription` (ya configurados). Hay ejemplos para probar en
+`docs/ejemplos_ia/silabo.pdf` y `docs/ejemplos_ia/notas.csv`. Un seguimiento
+conversacional puede usar la respuesta anterior, pero no vuelve a enviar
+automáticamente el archivo.
+
 La llamada al modelo espera 30 s. El modelo por defecto es el ligero; si no
 responde, no existe para la clave o Google devuelve `429`/`5xx`, se reintenta con
 `gemini-3-flash-preview` (45 s). Los logs indican qué modelo respondió y cuánto
@@ -197,17 +210,22 @@ ocupada.
 La búsqueda combina los términos con OR (migración `20261031000000`), de modo
 que "alguien vende mouse o maleta" recupera publicaciones que mencionen
 cualquiera de las dos palabras, ordenadas por relevancia. Una pregunta concreta
-se busca primero en el periodo pedido y luego en todo el historial; solo las
-preguntas de actividad general ("qué pasó", "resumen", "eventos", "populares")
-usan las publicaciones más recientes. Así una pregunta específica no recibe
-siempre las mismas doce publicaciones. Si la pregunta es de votos o
-popularidad, el contexto se ordena por `puntaje`.
+se busca primero en el periodo pedido y luego en todo el historial; las
+preguntas de actividad general ("qué se publicó en los últimos 7 días", "qué
+pasó", "resumen", "eventos", "populares") usan directamente las publicaciones más
+recientes y no las sustituyen por coincidencias antiguas. Así una pregunta
+específica no recibe siempre las mismas doce publicaciones y una consulta por
+periodo no responde que no hubo actividad si hay publicaciones dentro de él. Si
+la pregunta es de votos o popularidad, el contexto se ordena por `puntaje`.
 
 El contexto incluye el puntaje y los detalles de `metadatos` (`inicio`, `fin`,
 `lugar`, `precio`, `disponible`, `entregado`) para que el modelo distinga ventas
 de objetos encontrados y descarte eventos pasados usando la fecha actual. Las
 fuentes que devuelve la función son solo las que el modelo citó con `[P#]`
-(máximo 4); si respondió con conocimiento general, `fuentes` queda vacío. En los
+(máximo 4); si respondió con conocimiento general, `fuentes` queda vacío. En la
+app, las respuestas usan `SelectableText.rich` para seleccionar y copiar, renderizan
+negritas y código sin comillas invertidas, y los enlaces piden confirmación antes de
+abrirse fuera de la app con `url_launcher`. En los
 resúmenes la respuesta empieza con una nota determinista si se usaron
 publicaciones fuera del periodo pedido. Para preguntas generales (definiciones,
 explicaciones, cómo hacer algo) el modelo responde con conocimiento general y

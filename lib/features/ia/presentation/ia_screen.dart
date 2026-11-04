@@ -1,8 +1,17 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/app_palette.dart';
+import '../../../data/models/adjunto_ia.dart';
 import '../../../data/models/canal.dart';
 import '../../../data/models/perfil.dart';
 import '../../../data/models/respuesta_ia.dart';
@@ -24,16 +33,30 @@ class IaScreen extends ConsumerStatefulWidget {
 }
 
 class _IaScreenState extends ConsumerState<IaScreen> {
+  static const _maxAdjuntos = 3;
+  static const _maxBytesAdjunto = 6 * 1024 * 1024;
+  static const _maxBytesAdjuntos = 8 * 1024 * 1024;
+  static const _duracionMaximaGrabacion = Duration(minutes: 2);
+
   final _entrada = TextEditingController();
   final _foco = FocusNode();
   final _scroll = ScrollController();
   final List<_MensajeIA> _mensajes = [];
+  final List<AdjuntoIA> _adjuntos = [];
 
   bool _enviando = false;
   int? _restantes;
+  bool _grabando = false;
+  bool _procesandoAudio = false;
+  int _segundosGrabacion = 0;
+  Timer? _temporizadorGrabacion;
+  AudioRecorder? _grabadora;
 
   @override
   void dispose() {
+    _temporizadorGrabacion?.cancel();
+    final grabadora = _grabadora;
+    if (grabadora != null) unawaited(grabadora.dispose());
     _entrada.dispose();
     _foco.dispose();
     _scroll.dispose();
@@ -82,10 +105,12 @@ class _IaScreenState extends ConsumerState<IaScreen> {
     int dias = 30,
     String? canalId,
   }) async {
-    if (_enviando) return;
+    if (_enviando || _grabando || _procesandoAudio) return;
 
-    final pregunta = (texto ?? _entrada.text).trim();
-    if (pregunta.isEmpty) return;
+    var pregunta = (texto ?? _entrada.text).trim();
+    final adjuntos = List<AdjuntoIA>.unmodifiable(_adjuntos);
+    if (pregunta.isEmpty && adjuntos.isEmpty) return;
+    if (pregunta.isEmpty) pregunta = _preguntaParaAdjuntos(adjuntos);
     if (pregunta.length > IaRepository.maxPregunta) {
       _avisar(
         'La pregunta no puede superar ${IaRepository.maxPregunta} caracteres.',
@@ -101,12 +126,14 @@ class _IaScreenState extends ConsumerState<IaScreen> {
     );
     final historial = _historialActual();
     setState(() {
+      _adjuntos.clear();
       _mensajes.add(
         _MensajeIA.usuario(
           pregunta,
           resumen: resumen,
           dias: diasFinales,
           canalId: canalId,
+          adjuntos: adjuntos,
         ),
       );
     });
@@ -118,7 +145,16 @@ class _IaScreenState extends ConsumerState<IaScreen> {
       dias: diasFinales,
       canalId: canalId,
       historial: historial,
+      adjuntos: adjuntos,
     );
+  }
+
+  String _preguntaParaAdjuntos(List<AdjuntoIA> adjuntos) {
+    final hayAudio = adjuntos.any((adjunto) => adjunto.esAudio);
+    if (hayAudio && adjuntos.length == 1) {
+      return 'Transcribe el audio y dime lo más importante.';
+    }
+    return 'Analiza los archivos adjuntos y dime lo más importante.';
   }
 
   Future<void> _consultar({
@@ -127,6 +163,7 @@ class _IaScreenState extends ConsumerState<IaScreen> {
     required int dias,
     String? canalId,
     List<MensajeHistorialIA> historial = const [],
+    List<AdjuntoIA> adjuntos = const [],
   }) async {
     if (_enviando) return;
 
@@ -140,6 +177,7 @@ class _IaScreenState extends ConsumerState<IaScreen> {
             dias: dias,
             canalId: canalId,
             historial: historial,
+            adjuntos: adjuntos,
           );
       if (!mounted) return;
       setState(() {
@@ -159,6 +197,7 @@ class _IaScreenState extends ConsumerState<IaScreen> {
             dias: dias,
             canalId: canalId,
             historial: historial,
+            adjuntos: adjuntos,
           ),
         );
       });
@@ -175,6 +214,7 @@ class _IaScreenState extends ConsumerState<IaScreen> {
             dias: dias,
             canalId: canalId,
             historial: historial,
+            adjuntos: adjuntos,
           ),
         );
       });
@@ -196,7 +236,276 @@ class _IaScreenState extends ConsumerState<IaScreen> {
       dias: mensaje.dias,
       canalId: mensaje.canalId,
       historial: mensaje.historial,
+      adjuntos: mensaje.adjuntos,
     );
+  }
+
+  Future<void> _elegirAdjuntos() async {
+    if (_enviando || _grabando || _procesandoAudio) return;
+
+    List<PlatformFile> archivos;
+    try {
+      archivos = await FilePicker.pickFiles(
+        type: FileType.any,
+        dialogTitle: 'Adjuntar archivo',
+      );
+    } catch (_) {
+      _avisar('No se pudo abrir el selector de archivos.');
+      return;
+    }
+    if (archivos.isEmpty) return;
+
+    var total = _adjuntos.fold<int>(0, (suma, adjunto) => suma + adjunto.tamano);
+    final nuevos = <AdjuntoIA>[];
+    for (final archivo in archivos) {
+      if (_adjuntos.length + nuevos.length >= _maxAdjuntos) {
+        _avisar('Puedes adjuntar hasta $_maxAdjuntos archivos.');
+        break;
+      }
+      final mimeType = _mimeDeArchivo(archivo.name);
+      if (mimeType == null) {
+        _avisar(
+          '${archivo.name}: formato no compatible. Usa PDF, imagen, audio o texto.',
+        );
+        continue;
+      }
+      final yaHayAudio =
+          _adjuntos.any((adjunto) => adjunto.esAudio) ||
+          nuevos.any((adjunto) => adjunto.esAudio);
+      if (mimeType.startsWith('audio/') && yaHayAudio) {
+        _avisar('Solo puedes adjuntar un audio por consulta.');
+        continue;
+      }
+      int? tamano;
+      try {
+        tamano = await archivo.length();
+      } catch (_) {
+        _avisar('No se pudo leer ${archivo.name}.');
+        continue;
+      }
+      if (tamano != null && tamano <= 0) {
+        _avisar('${archivo.name} está vacío.');
+        continue;
+      }
+      if (tamano != null && tamano > _maxBytesAdjunto) {
+        _avisar('${archivo.name} supera el máximo de 6 MB.');
+        continue;
+      }
+      if (tamano != null && total + tamano > _maxBytesAdjuntos) {
+        _avisar('Los adjuntos superan el máximo total de 8 MB.');
+        break;
+      }
+
+      try {
+        final bytes = await archivo.readAsBytes();
+        if (bytes.isEmpty) {
+          _avisar('${archivo.name} está vacío.');
+          continue;
+        }
+        if (bytes.length > _maxBytesAdjunto) {
+          _avisar('${archivo.name} supera el máximo de 6 MB.');
+          continue;
+        }
+        if (total + bytes.length > _maxBytesAdjuntos) {
+          _avisar('Los adjuntos superan el máximo total de 8 MB.');
+          break;
+        }
+        total += bytes.length;
+        nuevos.add(
+          AdjuntoIA(
+            nombre: archivo.name,
+            mimeType: mimeType,
+            bytes: bytes,
+          ),
+        );
+      } catch (_) {
+        _avisar('No se pudo leer ${archivo.name}.');
+      }
+    }
+
+    if (!mounted) return;
+    if (nuevos.isNotEmpty) {
+      setState(() => _adjuntos.addAll(nuevos));
+    }
+  }
+
+  String? _mimeDeArchivo(String nombre) {
+    final punto = nombre.lastIndexOf('.');
+    if (punto < 0 || punto == nombre.length - 1) return null;
+    switch (nombre.substring(punto + 1).toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        return 'image/heic';
+      case 'heif':
+        return 'image/heif';
+      case 'm4a':
+      case 'mp4':
+        return 'audio/mp4';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'wav':
+        return 'audio/wav';
+      case 'ogg':
+        return 'audio/ogg';
+      case 'flac':
+        return 'audio/flac';
+      case 'aac':
+        return 'audio/aac';
+      case 'txt':
+        return 'text/plain';
+      case 'md':
+        return 'text/markdown';
+      case 'csv':
+        return 'text/csv';
+      case 'json':
+        return 'application/json';
+      default:
+        return null;
+    }
+  }
+
+  Future<void> _alternarGrabacion() async {
+    if (_enviando || _procesandoAudio) return;
+    if (_grabando) {
+      await _detenerGrabacion();
+      return;
+    }
+    if (_adjuntos.length >= _maxAdjuntos) {
+      _avisar('Puedes adjuntar hasta $_maxAdjuntos archivos.');
+      return;
+    }
+    if (_adjuntos.any((adjunto) => adjunto.esAudio)) {
+      _avisar('Solo puedes adjuntar un audio por consulta.');
+      return;
+    }
+
+    final grabadora = _grabadora ??= AudioRecorder();
+    try {
+      if (!await grabadora.hasPermission()) {
+        _avisar('Permite el acceso al micrófono para grabar un audio.');
+        return;
+      }
+      final directorio = await getTemporaryDirectory();
+      final ruta =
+          '${directorio.path}${Platform.pathSeparator}ia_audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await grabadora.start(
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 64000,
+          sampleRate: 44100,
+          numChannels: 1,
+        ),
+        path: ruta,
+      );
+      if (!mounted) {
+        await grabadora.cancel();
+        return;
+      }
+      setState(() {
+        _grabando = true;
+        _segundosGrabacion = 0;
+      });
+      _temporizadorGrabacion?.cancel();
+      _temporizadorGrabacion = Timer.periodic(
+        const Duration(seconds: 1),
+        (temporizador) {
+          if (!mounted) {
+            temporizador.cancel();
+            return;
+          }
+          setState(() => _segundosGrabacion++);
+          if (_segundosGrabacion >= _duracionMaximaGrabacion.inSeconds) {
+            temporizador.cancel();
+            unawaited(_detenerGrabacion());
+          }
+        },
+      );
+    } catch (_) {
+      _temporizadorGrabacion?.cancel();
+      if (mounted) {
+        setState(() => _grabando = false);
+        _avisar('No se pudo iniciar la grabación.');
+      }
+    }
+  }
+
+  Future<void> _detenerGrabacion() async {
+    if (!_grabando) return;
+    _temporizadorGrabacion?.cancel();
+    setState(() {
+      _grabando = false;
+      _procesandoAudio = true;
+    });
+
+    try {
+      String? ruta;
+      try {
+        ruta = await _grabadora?.stop();
+      } catch (_) {
+        ruta = null;
+      }
+      if (ruta == null) {
+        _avisar('No se pudo guardar el audio.');
+        return;
+      }
+
+      try {
+        final archivo = File(ruta);
+        final bytes = await archivo.readAsBytes();
+        if (await archivo.exists()) await archivo.delete();
+        if (bytes.length < 512) {
+          _avisar('La grabación quedó vacía. Intenta de nuevo.');
+          return;
+        }
+        if (bytes.length > _maxBytesAdjunto) {
+          _avisar('El audio supera el máximo de 6 MB.');
+          return;
+        }
+        if (!mounted) return;
+        final nombre = _nombreAudio();
+        setState(() {
+          _adjuntos.add(
+            AdjuntoIA(nombre: nombre, mimeType: 'audio/mp4', bytes: bytes),
+          );
+        });
+        _avisar(
+          'Audio adjunto (${_tamanoLegible(bytes.length)}). '
+          'Escribe una pregunta o pulsa enviar.',
+        );
+      } catch (_) {
+        _avisar('No se pudo leer la grabación.');
+      }
+    } finally {
+      if (mounted) setState(() => _procesandoAudio = false);
+    }
+  }
+
+  String _nombreAudio() {
+    String dos(int valor) => valor.toString().padLeft(2, '0');
+    final ahora = DateTime.now();
+    return 'Audio ${dos(ahora.hour)}-${dos(ahora.minute)}-${dos(ahora.second)}.m4a';
+  }
+
+  String _tamanoLegible(int bytes) {
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    if (bytes >= 1024) {
+      return '${(bytes / 1024).round()} KB';
+    }
+    return '$bytes B';
+  }
+
+  void _quitarAdjunto(AdjuntoIA adjunto) {
+    setState(() => _adjuntos.remove(adjunto));
   }
 
   Future<void> _elegirCanalResumen() async {
@@ -325,7 +634,14 @@ class _IaScreenState extends ConsumerState<IaScreen> {
             controller: _entrada,
             focus: _foco,
             enviando: _enviando,
+            grabando: _grabando,
+            procesandoAudio: _procesandoAudio,
+            segundosGrabacion: _segundosGrabacion,
+            adjuntos: _adjuntos,
             onEnviar: () => _enviar(),
+            onAdjuntar: _elegirAdjuntos,
+            onMicrofono: _alternarGrabacion,
+            onQuitarAdjunto: _quitarAdjunto,
           ),
         ],
       ),
@@ -875,6 +1191,7 @@ class _MensajeIA {
     this.dias = 30,
     this.canalId,
     this.historial = const [],
+    this.adjuntos = const [],
   });
 
   factory _MensajeIA.usuario(
@@ -882,6 +1199,7 @@ class _MensajeIA {
     required bool resumen,
     required int dias,
     String? canalId,
+    List<AdjuntoIA> adjuntos = const [],
   }) =>
       _MensajeIA._(
         texto: texto,
@@ -890,6 +1208,7 @@ class _MensajeIA {
         resumen: resumen,
         dias: dias,
         canalId: canalId,
+        adjuntos: adjuntos,
       );
 
   factory _MensajeIA.ia(String texto, {List<FuenteIA> fuentes = const []}) =>
@@ -902,6 +1221,7 @@ class _MensajeIA {
     required int dias,
     String? canalId,
     List<MensajeHistorialIA> historial = const [],
+    List<AdjuntoIA> adjuntos = const [],
   }) =>
       _MensajeIA._(
         texto: texto,
@@ -912,6 +1232,7 @@ class _MensajeIA {
         dias: dias,
         canalId: canalId,
         historial: historial,
+        adjuntos: adjuntos,
       );
 
   final String texto;
@@ -923,41 +1244,196 @@ class _MensajeIA {
   final int dias;
   final String? canalId;
   final List<MensajeHistorialIA> historial;
+  final List<AdjuntoIA> adjuntos;
 }
 
-class _TextoIA extends StatelessWidget {
+class _TextoIA extends StatefulWidget {
   const _TextoIA(this.texto, {required this.estilo});
 
   final String texto;
   final TextStyle estilo;
 
-  static final RegExp _negritas = RegExp(r'\*\*(.+?)\*\*', dotAll: true);
+  @override
+  State<_TextoIA> createState() => _TextoIAState();
+}
+
+class _TextoIAState extends State<_TextoIA> {
+  static final RegExp _formato = RegExp(
+    r'(\*\*(.+?)\*\*)'
+    r'|(`([^`\n]+)`)'
+    r'|(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))'
+    r'|(https?:\/\/[^\s<>]+)',
+    dotAll: true,
+  );
   static final RegExp _vinetas = RegExp(r'^(\s*)[*-]\s+', multiLine: true);
+  static final RegExp _cercasCodigo = RegExp(r'```[a-zA-Z0-9_+-]*');
+  static final RegExp _enlaceDuplicado = RegExp(
+    r'(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))\s*\(\3\)',
+  );
+  static final RegExp _urlDuplicada = RegExp(
+    r'\[?(https?:\/\/[^\s\]]+)\]?\s*\(\1\)',
+  );
+
+  final Map<String, TapGestureRecognizer> _reconocedores = {};
 
   @override
-  Widget build(BuildContext context) {
-    final limpio = texto.replaceAllMapped(
+  void dispose() {
+    for (final reconocedor in _reconocedores.values) {
+      reconocedor.dispose();
+    }
+    super.dispose();
+  }
+
+  TapGestureRecognizer _reconocedor(String url) {
+    return _reconocedores.putIfAbsent(url, () {
+      final reconocedor = TapGestureRecognizer();
+      reconocedor.onTap = () => _confirmarEnlace(url);
+      return reconocedor;
+    });
+  }
+
+  Future<void> _confirmarEnlace(String enlace) async {
+    final uri = Uri.tryParse(enlace);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) return;
+    if (!mounted) return;
+
+    final abrir = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Abrir enlace externo'),
+        content: Text(
+          'Este enlace te llevará fuera de UniForum:\n\n$enlace\n\n'
+          '¿Quieres abrirlo?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Abrir'),
+          ),
+        ],
+      ),
+    );
+
+    if (abrir != true || !mounted) return;
+
+    var abierto = false;
+    try {
+      abierto = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      abierto = false;
+    }
+    if (!abierto && mounted) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir el enlace.')),
+      );
+    }
+  }
+
+  String _limpiarUrl(String url) {
+    var limpia = url;
+    while (limpia.isNotEmpty) {
+      final ultimo = limpia[limpia.length - 1];
+      if ('.,;:!?'.contains(ultimo)) {
+        limpia = limpia.substring(0, limpia.length - 1);
+        continue;
+      }
+      if (ultimo == ')') {
+        final abre = RegExp(r'\(').allMatches(limpia).length;
+        final cierra = RegExp(r'\)').allMatches(limpia).length;
+        if (cierra > abre) {
+          limpia = limpia.substring(0, limpia.length - 1);
+          continue;
+        }
+      }
+      break;
+    }
+    return limpia;
+  }
+
+  TextSpan _spanEnlace(String texto, String url, BuildContext context) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      return TextSpan(text: texto);
+    }
+    final color = context.colors.ugBlue;
+    return TextSpan(
+      text: texto,
+      style: TextStyle(
+        color: color,
+        decoration: TextDecoration.underline,
+        decorationColor: color.withValues(alpha: 0.7),
+        fontWeight: FontWeight.w600,
+      ),
+      recognizer: _reconocedor(url),
+    );
+  }
+
+  List<InlineSpan> _construirSpans(BuildContext context) {
+    var limpio = widget.texto.replaceAllMapped(
       _vinetas,
       (coincidencia) => '${coincidencia[1]}• ',
     );
-    final spans = <TextSpan>[];
+    limpio = limpio.replaceAll(_cercasCodigo, '');
+    limpio = limpio.replaceAllMapped(
+      _enlaceDuplicado,
+      (coincidencia) => coincidencia[1]!,
+    );
+    limpio = limpio.replaceAllMapped(
+      _urlDuplicada,
+      (coincidencia) => coincidencia[1]!,
+    );
+
+    final estiloCodigo = TextStyle(
+      fontFamily: 'monospace',
+      fontSize: (widget.estilo.fontSize ?? 14.5) - 0.5,
+      backgroundColor: context.colors.surfaceContainerHighest,
+      color: context.colors.onSurface,
+    );
+    final spans = <InlineSpan>[];
     var inicio = 0;
-    for (final coincidencia in _negritas.allMatches(limpio)) {
+
+    for (final coincidencia in _formato.allMatches(limpio)) {
       if (coincidencia.start > inicio) {
         spans.add(TextSpan(text: limpio.substring(inicio, coincidencia.start)));
       }
-      spans.add(
-        TextSpan(
-          text: coincidencia.group(1),
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
-      );
+
+      if (coincidencia[1] != null) {
+        spans.add(
+          TextSpan(
+            text: coincidencia[2],
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        );
+      } else if (coincidencia[3] != null) {
+        spans.add(TextSpan(text: coincidencia[4], style: estiloCodigo));
+      } else if (coincidencia[5] != null) {
+        spans.add(_spanEnlace(coincidencia[6]!, coincidencia[7]!, context));
+      } else {
+        final crudo = coincidencia[8]!;
+        final url = _limpiarUrl(crudo);
+        spans.add(_spanEnlace(url, url, context));
+        if (url.length < crudo.length) {
+          spans.add(TextSpan(text: crudo.substring(url.length)));
+        }
+      }
       inicio = coincidencia.end;
     }
+
     if (inicio < limpio.length) {
       spans.add(TextSpan(text: limpio.substring(inicio)));
     }
-    return Text.rich(TextSpan(style: estilo, children: spans));
+    return spans;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectableText.rich(
+      TextSpan(style: widget.estilo, children: _construirSpans(context)),
+    );
   }
 }
 
@@ -1000,14 +1476,31 @@ class _BurbujaMensaje extends StatelessWidget {
         ),
         border: Border.all(color: context.colors.ugBlue.withValues(alpha: 0.35)),
       ),
-      child: Text(
-        mensaje.texto,
-        style: TextStyle(
-          fontSize: 14.5,
-          height: 1.45,
-          fontWeight: FontWeight.w600,
-          color: context.colors.onSurface,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (mensaje.adjuntos.isNotEmpty) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final adjunto in mensaje.adjuntos)
+                  _ChipAdjunto(adjunto: adjunto),
+              ],
+            ),
+            if (mensaje.texto.isNotEmpty) const SizedBox(height: 8),
+          ],
+          if (mensaje.texto.isNotEmpty)
+            Text(
+              mensaje.texto,
+              style: TextStyle(
+                fontSize: 14.5,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
+                color: context.colors.onSurface,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1239,6 +1732,79 @@ class _Escribiendo extends StatelessWidget {
   }
 }
 
+/// Archivo adjunto mostrado antes de enviar o dentro del mensaje del usuario.
+class _ChipAdjunto extends StatelessWidget {
+  const _ChipAdjunto({required this.adjunto, this.onQuitar});
+
+  final AdjuntoIA adjunto;
+  final VoidCallback? onQuitar;
+
+  IconData get _icono {
+    if (adjunto.esAudio) return Icons.graphic_eq;
+    if (adjunto.esPdf) return Icons.picture_as_pdf_outlined;
+    if (adjunto.esImagen) return Icons.image_outlined;
+    return Icons.description_outlined;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 240),
+      padding: EdgeInsets.fromLTRB(9, 6, onQuitar == null ? 9 : 4, 6),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainer,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: context.colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_icono, size: 16, color: context.colors.ugBlue),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              adjunto.nombre,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            _tamanoLegible(adjunto.tamano),
+            style: TextStyle(fontSize: 10.5, color: context.colors.outline),
+          ),
+          if (onQuitar != null)
+            InkWell(
+              onTap: onQuitar,
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(
+                  Icons.close,
+                  size: 15,
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String _tamanoLegible(int bytes) {
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    if (bytes >= 1024) return '${(bytes / 1024).round()} KB';
+    return '$bytes B';
+  }
+}
+
 /// Consola de entrada inferior con adjuntar, voz y envío.
 class _ConsolaIA extends StatelessWidget {
   const _ConsolaIA({
@@ -1246,73 +1812,218 @@ class _ConsolaIA extends StatelessWidget {
     required this.focus,
     required this.onEnviar,
     required this.enviando,
+    required this.grabando,
+    required this.procesandoAudio,
+    required this.segundosGrabacion,
+    required this.adjuntos,
+    required this.onAdjuntar,
+    required this.onMicrofono,
+    required this.onQuitarAdjunto,
   });
 
   final TextEditingController controller;
   final FocusNode focus;
   final VoidCallback onEnviar;
   final bool enviando;
+  final bool grabando;
+  final bool procesandoAudio;
+  final int segundosGrabacion;
+  final List<AdjuntoIA> adjuntos;
+  final VoidCallback onAdjuntar;
+  final VoidCallback onMicrofono;
+  final ValueChanged<AdjuntoIA> onQuitarAdjunto;
 
   @override
   Widget build(BuildContext context) {
+    final hayChips = adjuntos.isNotEmpty || grabando || procesandoAudio;
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         color: context.colors.surfaceContainerLowest,
         border: Border(top: BorderSide(color: context.colors.outlineVariant)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _botonIcono(context, Icons.attach_file, 'Adjuntar'),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.colors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(14),
+          if (hayChips)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (grabando) _ChipGrabando(segundos: segundosGrabacion),
+                  if (procesandoAudio) const _ChipProcesandoAudio(),
+                  for (final adjunto in adjuntos)
+                    _ChipAdjunto(
+                      adjunto: adjunto,
+                      onQuitar: () => onQuitarAdjunto(adjunto),
+                    ),
+                ],
               ),
-              child: TextField(
-                controller: controller,
-                focusNode: focus,
-                minLines: 1,
-                maxLines: 5,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => onEnviar(),
-                decoration: InputDecoration(
-                  hintText: 'Pregunta sobre clases, canales o trámites…',
-                  hintStyle: TextStyle(color: context.colors.outline, fontSize: 14),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
+            ),
+          Row(
+            children: [
+              _botonIcono(
+                context,
+                Icons.attach_file,
+                'Adjuntar archivo',
+                onTap: onAdjuntar,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focus,
+                    minLines: 1,
+                    maxLines: 5,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => onEnviar(),
+                    decoration: InputDecoration(
+                      hintText: grabando
+                          ? 'Grabando audio… toca el micrófono para detener'
+                          : procesandoAudio
+                          ? 'Procesando audio…'
+                          : 'Pregunta sobre clases, canales o trámites…',
+                      hintStyle: TextStyle(
+                        color: context.colors.outline,
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(width: 6),
+              _botonIcono(
+                context,
+                grabando ? Icons.stop_circle_outlined : Icons.mic_none,
+                grabando ? 'Detener grabación' : 'Grabar audio',
+                onTap: onMicrofono,
+                color: grabando ? context.colors.ugRed : null,
+              ),
+              const SizedBox(width: 6),
+              _BotonEnviar(
+                onTap: enviando || grabando || procesandoAudio
+                    ? null
+                    : onEnviar,
+                enviando: enviando,
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
-          _botonIcono(context, Icons.mic_none, 'Dictar por voz'),
-          const SizedBox(width: 6),
-          _BotonEnviar(onTap: enviando ? null : onEnviar, enviando: enviando),
         ],
       ),
     );
   }
 
-  Widget _botonIcono(BuildContext context, IconData icono, String tooltip) {
+  Widget _botonIcono(
+    BuildContext context,
+    IconData icono,
+    String tooltip, {
+    required VoidCallback onTap,
+    Color? color,
+  }) {
     return Material(
       color: Colors.transparent,
       shape: const CircleBorder(),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         customBorder: const CircleBorder(),
         child: Tooltip(
           message: tooltip,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Icon(icono, size: 22, color: context.colors.onSurfaceVariant),
+            child: Icon(
+              icono,
+              size: 22,
+              color: color ?? context.colors.onSurfaceVariant,
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ChipGrabando extends StatelessWidget {
+  const _ChipGrabando({required this.segundos});
+
+  final int segundos;
+
+  @override
+  Widget build(BuildContext context) {
+    String dos(int valor) => valor.toString().padLeft(2, '0');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: context.colors.ugRed.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: context.colors.ugRed.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.fiber_manual_record, size: 12, color: context.colors.ugRed),
+          const SizedBox(width: 6),
+          Text(
+            'Grabando ${dos(segundos ~/ 60)}:${dos(segundos % 60)}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: context.colors.ugRed,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChipProcesandoAudio extends StatelessWidget {
+  const _ChipProcesandoAudio();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainer,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: context.colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: context.colors.ugBlue,
+            ),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            'Procesando audio…',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: context.colors.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
