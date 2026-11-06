@@ -1,6 +1,6 @@
 # Plataforma Social Universitaria Inteligente
 
-> **Nombre del producto:** pendiente de definir. `UniForum` fue un nombre de trabajo y no debe tratarse como definitivo.
+> **Nombre del producto:** `Vybe`.
 
 Aplicación móvil desarrollada con **Flutter y Dart** para conectar a estudiantes, docentes, personal administrativo, egresados y, cuando corresponda, visitantes. Combina conversación social, información útil, vida universitaria, publicaciones institucionales, compra y venta, objetos perdidos/encontrados, eventos, inteligencia artificial y gamificación.
 
