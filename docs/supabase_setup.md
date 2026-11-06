@@ -61,10 +61,10 @@ Organización `TheCristian2003's Org`, región `us-east-1`, PostgreSQL 17.11.
 
 - **Desarrollo** (referencia `nreglugsyicwbaquexcp`)
   - URL: `https://nreglugsyicwbaquexcp.supabase.co`
-  - Estado: esquema canónico aplicado (14 migraciones) y pruebas en verde. La
-  migración `20261031000000_ia_busqueda_or.sql` está pendiente de aplicar en el
-  proyecto de desarrollo. `20261014000000_maestra_lectura_anon.sql` ya está
-  aplicada (confirmado por el equipo el 2026-10-29).
+  - Estado: esquema canónico aplicado (16 migraciones) y pruebas en verde.
+    `20261014000000_maestra_lectura_anon.sql` se aplicó el 2026-10-29 y
+    `20261103000000_publicaciones_validacion_y_storage.sql` se aplicó el
+    2026-11-05.
   - `.env` local apunta a este proyecto. Todas las pruebas se hacen aquí.
 - **Producción** (referencia `luxxhxjibycyuojqzryf`)
   - URL: `https://luxxhxjibycyuojqzryf.supabase.co`
@@ -236,6 +236,23 @@ se registran en los logs de la función con su código HTTP: `400/401/403` clave
 permisos, `404` modelo inexistente, `429` límite de cuota de Google y `0` bloqueo
 por filtros de contenido.
 
+## Validación de publicaciones y Storage
+
+La migración `20261103000000_publicaciones_validacion_y_storage.sql`:
+
+- Normaliza categorías históricas: `venta`, `perdido`, `encontrado` y `evento`
+  usan `general`; las categorías `marketplace` y `eventos` dejan de usarse.
+- Impide por trigger que una publicación de discusión o aviso use
+  `marketplace`/`eventos`, y exige `general` para los demás tipos.
+- Valida metadatos obligatorios: precio/moneda/disponible en ventas; fecha y
+  lugar en perdidos/encontrados; `entregado` en encontrados; inicio y lugar en
+  eventos; fin posterior al inicio y enlaces http(s).
+- Límites del bucket `publicaciones`: 5 MB por archivo y solo JPEG, PNG y WebP.
+
+El rol privilegiado se sigue asignando desde backend/admin con
+`app_metadata.app_role`; `supabase/dev_asignar_rol.sql` es una ayuda manual para
+desarrollo y no se expone como RPC al cliente.
+
 ## Siguientes pasos después del esquema inicial
 
 1. Añadir `supabase_flutter` al cliente Flutter y leer `.env` en desarrollo.
@@ -257,9 +274,9 @@ por filtros de contenido.
 
 ### Cambios pendientes de aplicar en el proyecto remoto
 
-- Aplicar la migración `20261031000000_ia_busqueda_or.sql` (15.ª) si aún no está
-  aplicada; sin ella la búsqueda de la IA exige todas las palabras. Las
-  migraciones de contexto y objetos ya están aplicadas.
+- La migración `20261103000000_publicaciones_validacion_y_storage.sql` ya está
+  aplicada. Ejecutar `supabase/tests/publicaciones_validacion_test.sql` para
+  comprobar categorías, metadatos y límites del bucket.
 - Ejecutar `supabase/dev_seed_imagenes.sql` si aún no se hizo (requiere
   `dev_seed_demo_data.sql` ya ejecutado).
 - Desplegar `campus-ai` y definir el secreto `GEMINI_API_KEY` (ver la sección de

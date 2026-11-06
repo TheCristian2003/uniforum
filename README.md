@@ -25,9 +25,14 @@ La aplicación utiliza una sola entidad `publicaciones` para mantener el feed y 
 - `encontrado`
 - `evento`
 
-La **categoría** es independiente del tipo. Por ejemplo, una publicación de tipo `discusion` puede tener categoría `chisme`, `deportes`, `vida universitaria`, `tecnología` o `académico`. “Chisme” no es un tipo estructural adicional; debe respetar las reglas de privacidad y convivencia.
+La **categoría** aporta el tema y solo se pide para `discusion` y `aviso`. Por
+ejemplo, una discusión puede ser `chisme`, `deportes`, `vida universitaria`,
+`tecnología` o `académico`. Los tipos `venta`, `perdido`, `encontrado` y `evento`
+ya explican su propósito y usan la categoría `general`. “Chisme” no es un tipo
+estructural adicional; debe respetar las reglas de privacidad y convivencia.
 
-Los campos específicos de cada tipo pueden almacenarse en `metadatos` (`jsonb`) con validación en la aplicación y, cuando sea apropiado, en la base de datos.
+Los campos específicos de cada tipo pueden almacenarse en `metadatos` (`jsonb`)
+con validación en la aplicación y en la base de datos.
 
 ## Usuarios y perfiles
 
@@ -88,13 +93,13 @@ votante y el contenido, no del id del voto. Las pruebas de integridad y RLS
 están en `supabase/tests/integrity_and_rls_test.sql` y se ejecutan contra una
 instancia de desarrollo.
 
-El directorio `supabase/migrations/` reúne 15 migraciones aditivas: esquema
+El directorio `supabase/migrations/` reúne 16 migraciones aditivas: esquema
 inicial, endurecimiento de funciones, revocación de privilegios, optimización de
 índices y RLS, idempotencia de votos, moderación, insignias, imágenes, perfil
 desde el registro, datos personales, privacidad del perfil, lectura anónima de
-catálogos, contexto/cupo de la IA, resumen de objetos y búsqueda OR para la IA.
-Cada una debe aplicarse en orden sobre desarrollo; producción no se toca hasta un
-release.
+catálogos, contexto/cupo de la IA, resumen de objetos, búsqueda OR para la IA y
+validación de categorías, metadatos y Storage. Cada una debe aplicarse en orden
+sobre desarrollo; producción no se toca hasta un release.
 
 Las credenciales se mantienen fuera del repositorio en archivos `.env` locales.
 Al registrarse, el cliente envía el nombre/alias, el tipo de perfil y el
@@ -347,16 +352,12 @@ guardan en Storage. Hay ejemplos en `docs/ejemplos_ia/` (`silabo.pdf` y
 
 Pendiente:
 
-- Aplicar `20261031000000_ia_busqueda_or.sql` en el proyecto remoto y
-  redesplegar `campus-ai`. Sin esa migración la IA funciona, pero una pregunta
-  con varias palabras puede no encontrar publicaciones que solo coinciden
-  parcialmente.
+- La migración `20261103000000_publicaciones_validacion_y_storage.sql` ya está
+  aplicada en desarrollo. Ejecutar `supabase/tests/publicaciones_validacion_test.sql`
+  y redesplegar `campus-ai` si aún no tiene la versión con adjuntos.
 - Probar el registro/login/onboarding contra el proyecto de desarrollo con
   usuarios reales y confirmar el mecanismo de confirmación de correo en
   Supabase Auth.
-- Validar los metadatos en SQL (hoy solo se validan en el formulario de Flutter)
-  y limitar tamaño y MIME de las imágenes en el backend.
-- Asignación de `app_metadata.app_role` desde backend (sin eso no hay avisos
-  institucionales ni moderación reales), ranking semanal y tipografía Plus Jakarta
-  Sans.
+- Ranking semanal, tipografía Plus Jakarta Sans y preferencias de Ajustes que
+  todavía no tienen efecto.
 - Ejecutar `supabase/dev_seed_imagenes.sql` si aún no se ha hecho.

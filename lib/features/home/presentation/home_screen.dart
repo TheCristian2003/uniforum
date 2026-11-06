@@ -77,9 +77,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         );
   }
 
+  Future<void> _votarPublicacion(Publicacion publicacion, int valor) async {
+    final actual = ref
+        .read(misVotosProvider)
+        .value
+        ?.votoPublicacion(publicacion.id);
+    try {
+      await ref
+          .read(votosRepositoryProvider)
+          .votarPublicacion(
+            publicacionId: publicacion.id,
+            valor: valor,
+            votoActual: actual,
+          );
+      ref.invalidate(misVotosProvider);
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(publicacionDetalleProvider(publicacion.id));
+      ref.invalidate(publicacionesDeCanalProvider(publicacion.canalId));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo registrar tu voto.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final feed = ref.watch(feedRecientesProvider);
+    final miId = ref.watch(currentUserProvider)?.id;
+    final misVotos = ref.watch(misVotosProvider).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -165,6 +192,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
                           onTapAutor: _abrirAutor(publicacion),
+                          miVoto: misVotos?.votoPublicacion(publicacion.id),
+                          habilitado: !publicacion.esDe(miId),
+                          onVotar: (valor) =>
+                              _votarPublicacion(publicacion, valor),
                         ),
                     ],
                   );

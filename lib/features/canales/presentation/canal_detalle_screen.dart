@@ -7,6 +7,7 @@ import '../../../core/utils/estilo_canal.dart';
 import '../../../core/utils/icono_canal.dart';
 import '../../../core/widgets/estado_view.dart';
 import '../../../data/models/canal.dart';
+import '../../../data/models/publicacion.dart';
 import '../../feed/presentation/widgets/publicacion_card.dart';
 import '../../perfil/presentation/perfil_screen.dart';
 import '../../publicaciones/presentation/publicacion_detalle_screen.dart';
@@ -26,10 +27,41 @@ class CanalDetalleScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _votarPublicacion(
+    BuildContext context,
+    WidgetRef ref,
+    Publicacion publicacion,
+    int valor,
+  ) async {
+    final actual = ref
+        .read(misVotosProvider)
+        .value
+        ?.votoPublicacion(publicacion.id);
+    try {
+      await ref
+          .read(votosRepositoryProvider)
+          .votarPublicacion(
+            publicacionId: publicacion.id,
+            valor: valor,
+            votoActual: actual,
+          );
+      ref.invalidate(misVotosProvider);
+      ref.invalidate(publicacionesDeCanalProvider(canal.id));
+      ref.invalidate(feedRecientesProvider);
+      ref.invalidate(publicacionDetalleProvider(publicacion.id));
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo registrar tu voto.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final publicaciones = ref.watch(publicacionesDeCanalProvider(canal.id));
     final miId = ref.watch(currentUserProvider)?.id;
+    final misVotos = ref.watch(misVotosProvider).value;
     final tipos = ref.watch(catalogoProvider('tipo_canal')).value ?? const [];
     String? tipoCodigo;
     for (final tipo in tipos) {
@@ -104,6 +136,16 @@ class CanalDetalleScreen extends ConsumerWidget {
                                         ),
                                       ),
                                     ),
+                              miVoto: misVotos?.votoPublicacion(
+                                publicacion.id,
+                              ),
+                              habilitado: !publicacion.esDe(miId),
+                              onVotar: (valor) => _votarPublicacion(
+                                context,
+                                ref,
+                                publicacion,
+                                valor,
+                              ),
                             ),
                         ],
                       ),

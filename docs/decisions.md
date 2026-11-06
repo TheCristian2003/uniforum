@@ -115,7 +115,8 @@ Reglas para no repetir errores:
   publicaciones ocupan todo el ancho, sin sombra ni tarjeta redondeada, y se
   separan por una línea casi invisible, al estilo de un feed social. El detalle
   de publicación y los comentarios siguen el mismo criterio; las imágenes usan
-  todo el ancho disponible y crecen de forma proporcional.
+  todo el ancho disponible y crecen de forma proporcional. La tarjeta permite
+  votar directamente desde Inicio o el canal sin abrir el detalle.
 - La fecha relativa se centraliza en `core/utils/fecha_relativa.dart` y el mapeo
   de iconos de canal en `core/utils/icono_canal.dart`.
 
@@ -295,6 +296,23 @@ Reglas para no repetir errores:
   así el formulario no mezcla fondos claros con textos o controles del tema
   oscuro. El tema elegido se aplica al entrar a la aplicación autenticada.
 
+## Tipos y categorías al crear publicaciones (2026-11-04)
+
+- El **tipo** describe la estructura y los metadatos de la publicación
+  (`discusion`, `aviso`, `venta`, `perdido`, `encontrado`, `evento`).
+- La **categoría** es un tema y solo se pide para `discusion` y `aviso`
+  (académico, vida universitaria, chisme, deportes, tecnología, general).
+  `venta`, `perdido`, `encontrado` y `evento` ya se explican por su tipo, así que
+  no muestran selector de categoría.
+- Al crear esos tipos se asigna automáticamente `general`; al editar se conserva
+  la categoría existente. Las categorías redundantes `marketplace` y `eventos` se
+  ocultan del formulario y el seed nuevo usa `general`.
+- La creación se reorganizó con una cuadrícula de tipos, el contenido y las fotos
+  en una sola sección, y un único botón inferior para publicar. Se retiraron los
+  botones y la tarjeta de IA que todavía no tenían función.
+- Queda pendiente imponer esta combinación tipo/categoría en SQL durante el paso
+  de endurecimiento de datos.
+
 ## Seed de demo y lección de esquema (2026-10-15)
 
 - `supabase/dev_seed_demo_data.sql` crea perfiles, publicaciones, comentarios,
@@ -409,17 +427,28 @@ Reglas para no repetir errores:
   primera consulta no se muestra. El FAB de publicar se oculta en esta pestaña
   porque tapaba el campo de texto.
 
+## Endurecimiento de datos (paso 4, 2026-11-04)
+
+- `20261103000000_publicaciones_validacion_y_storage.sql` normaliza las
+  categorías antiguas y activa dos triggers: uno exige categoría temática solo
+  para `discusion`/`aviso` (sin `marketplace` ni `eventos`) y `general` para el
+  resto; otro valida los metadatos obligatorios de venta, perdido, encontrado y
+  evento.
+- El bucket `publicaciones` queda limitado a 5 MB por archivo y a JPEG, PNG y
+  WebP, además de las políticas por carpeta `{uid}/`.
+- Los roles se asignan desde backend/admin con
+  `app_metadata.app_role`; `supabase/dev_asignar_rol.sql` es una ayuda manual
+  solo para desarrollo y exige cerrar/iniciar sesión para renovar el JWT.
+- La migración no sustituye la validación del cliente: ambas capas comparten las
+  mismas reglas para dar mensajes claros sin confiar en Flutter.
+- `supabase/tests/publicaciones_validacion_test.sql` cubre categorías y
+  metadatos inválidos. Se ejecutó en desarrollo y pasó.
+
 ## Decisiones pendientes
 
-- Imponer validaciones SQL de `metadatos` (hoy solo en Flutter) una vez
-  estabilizado el formato por tipo.
-- Definir el operador que asignará roles privilegiados (`app_role`).
+- Automatizar la asignación de roles privilegiados desde un panel/backend
+  (hoy existe el script manual de desarrollo).
 - Definir si el contenido oculto debe ser visible para su autor (hoy sí lo es).
-- Definir tamaño máximo y MIME de las imágenes en el backend; la cantidad (3/1) y
-  la ruta (`{uid}/archivo`) ya están definidas.
-- Desplegar la Edge Function `campus-ai` con `GEMINI_API_KEY` y aplicar la
-  migración `20261029000000_ia_contexto_y_cupo.sql` en el proyecto remoto (el
-  cliente ya invoca la función).
 - Ranking semanal y preferencias de Ajustes que aún no tienen efecto.
 - Confirmar la identidad visual/nombre final. El archivo `docs/design/DESIGN.md` se trata
   como referencia visual y no establece nombre comercial ni identidad final.

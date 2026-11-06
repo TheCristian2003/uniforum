@@ -145,9 +145,11 @@ class _Seccion extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: context.colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.ugBlue.withValues(alpha: 0.12)),
+        color: context.colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: context.colors.outlineVariant.withValues(alpha: 0.7),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,17 +205,29 @@ class _Etiqueta extends StatelessWidget {
   }
 }
 
-/// Chip de selección de tipo de publicación (carrusel horizontal).
+String _descripcionTipo(String codigo) => switch (codigo) {
+  'discusion' => 'Pregunta, debate o conversación',
+  'aviso' => 'Información oficial del campus',
+  'venta' => 'Ofrece un producto',
+  'perdido' => 'Reporta algo que perdiste',
+  'encontrado' => 'Reporta algo que encontraste',
+  'evento' => 'Actividad con fecha y lugar',
+  _ => 'Publica en el campus',
+};
+
+/// Opción visual para elegir el tipo de publicación.
 class _ChipTipo extends StatelessWidget {
   const _ChipTipo({
     required this.estilo,
     required this.nombre,
+    required this.descripcion,
     required this.seleccionado,
     required this.onTap,
   });
 
   final EstiloTipo estilo;
   final String nombre;
+  final String descripcion;
   final bool seleccionado;
   final VoidCallback? onTap;
 
@@ -221,232 +235,76 @@ class _ChipTipo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: seleccionado
-          ? context.colors.ugOcre.withValues(alpha: 0.18)
-          : context.colors.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(12),
+          ? estilo.color.withValues(alpha: 0.1)
+          : context.colors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: seleccionado
-                  ? context.colors.ugOcre
-                  : context.colors.ugBlue.withValues(alpha: 0.12),
-              width: seleccionado ? 2 : 1,
+                  ? estilo.color
+                  : context.colors.outlineVariant.withValues(alpha: 0.6),
+              width: seleccionado ? 1.8 : 1,
             ),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 24,
-                height: 24,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: estilo.color,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(estilo.icono, size: 15, color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                nombre,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: seleccionado ? FontWeight.w700 : FontWeight.w600,
                   color: seleccionado
-                      ? const Color(0xFF644400)
-                      : context.colors.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Tarjeta del Copiloto IA (maqueta visual; aún sin backend en esta pantalla).
-class _TarjetaIA extends StatelessWidget {
-  const _TarjetaIA({required this.onAccion});
-
-  final VoidCallback onAccion;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            context.colors.ugOcre.withValues(alpha: 0.16),
-            context.colors.surfaceContainerLowest,
-            context.colors.ugBlue.withValues(alpha: 0.08),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.ugOcre.withValues(alpha: 0.6)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: context.colors.ugOcre,
+                      ? estilo.color
+                      : estilo.color.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.auto_awesome,
-                  size: 18,
-                  color: Color(0xFF1B1D28),
+                child: Icon(
+                  estilo.icono,
+                  size: 19,
+                  color: seleccionado ? Colors.white : estilo.color,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 9),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        const Flexible(
-                          child: Text(
-                            'Copiloto IA de Redacción',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.colors.ugBlue,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: const Text(
-                            'UNIGUAJIRA AI',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.4,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: seleccionado
+                            ? FontWeight.w800
+                            : FontWeight.w700,
+                        color: context.colors.onSurface,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Pule tu redacción, mejora el título y sugiere etiquetas.',
+                      descripcion,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
-                        height: 1.25,
+                        fontSize: 10.5,
+                        height: 1.2,
                         color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _ChipIA(icono: Icons.bolt, texto: 'Mejorar título', onTap: onAccion),
-              _ChipIA(
-                icono: Icons.format_list_bulleted,
-                texto: 'Organizar en puntos',
-                onTap: onAccion,
-              ),
-              _ChipIA(icono: Icons.sell_outlined, texto: 'Sugerir tags', onTap: onAccion),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceContainerLowest.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: context.colors.ugBlue.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.tips_and_updates_outlined,
-                    size: 16, color: context.colors.ugBlue),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'El Copiloto IA estará disponible próximamente.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: context.colors.onSurface,
-                    ),
-                  ),
-                ),
+              if (seleccionado) ...[
+                const SizedBox(width: 4),
+                Icon(Icons.check_circle, size: 16, color: estilo.color),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ChipIA extends StatelessWidget {
-  const _ChipIA({
-    required this.icono,
-    required this.texto,
-    required this.onTap,
-  });
-
-  final IconData icono;
-  final String texto;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: context.colors.surfaceContainerLowest,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: context.colors.outlineVariant),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icono, size: 13, color: context.colors.ugBlue),
-              const SizedBox(width: 5),
-              Text(
-                texto,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ],
           ),
         ),
@@ -478,7 +336,7 @@ class _BotonAdjuntar extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: 84,
+          width: 96,
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -697,10 +555,6 @@ class _CrearPublicacionScreenState
         .showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
-  void _proximamente() {
-    _mostrarError('Esta función estará disponible próximamente.');
-  }
-
   Future<DateTime?> _seleccionarFecha({bool conHora = false}) async {
     final fecha = await showDatePicker(
       context: context,
@@ -732,8 +586,23 @@ class _CrearPublicacionScreenState
     if (!_formKey.currentState!.validate()) return;
     final canalId = _canalId;
     final tipoId = _tipoId;
-    final categoriaId = _categoriaId;
-    if (canalId == null || tipoId == null || categoriaId == null) return;
+    final tipos = ref.read(catalogoProvider('tipo_publicacion')).value ?? [];
+    final tipo = tipos.where((t) => t.id == tipoId).firstOrNull;
+    final categorias =
+        ref.read(catalogoProvider('categoria_publicacion')).value ?? [];
+    final categoriaGeneral =
+        categorias.where((c) => c.codigo == 'general').firstOrNull;
+    final categoriaId = _tipoUsaCategoria(tipo?.codigo)
+        ? _categoriaId
+        : (_categoriaId ?? categoriaGeneral?.id);
+    if (canalId == null || tipoId == null || categoriaId == null) {
+      _mostrarError(
+        categoriaId == null && _tipoUsaCategoria(tipo?.codigo)
+            ? 'Selecciona una categoría.'
+            : 'No se pudo resolver la clasificación de la publicación.',
+      );
+      return;
+    }
 
     setState(() => _enviando = true);
     try {
@@ -851,6 +720,9 @@ class _CrearPublicacionScreenState
     return tipos.where((t) => t.id == _tipoId).cast<CatalogoItem?>().firstOrNull;
   }
 
+  bool _tipoUsaCategoria(String? codigo) =>
+      codigo == 'discusion' || codigo == 'aviso';
+
   String? _nombrePorId(List<CatalogoItem> items, int? id) {
     if (id == null) return null;
     return items.where((e) => e.id == id).map((e) => e.nombre).firstOrNull;
@@ -867,6 +739,11 @@ class _CrearPublicacionScreenState
       return true;
     }).toList();
     final tipoSel = _tipoSeleccionado();
+    final requiereCategoria = _tipoUsaCategoria(tipoSel?.codigo);
+    final categoriasDisponibles = (categoriasAsync.value ?? []).where((c) {
+      if (c.id == _categoriaId) return true;
+      return c.codigo != 'marketplace' && c.codigo != 'eventos';
+    }).toList();
 
     final perfil = ref.watch(perfilActualProvider).value;
     final sedes = ref.watch(catalogoProvider('sede')).value ?? [];
@@ -936,16 +813,6 @@ class _CrearPublicacionScreenState
             ],
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: _BotonPublicar(
-              etiqueta: _editando ? 'Guardar' : 'Publicar',
-              enviando: _enviando,
-              onPressed: _publicar,
-            ),
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
@@ -982,7 +849,9 @@ class _CrearPublicacionScreenState
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'No se puede cambiar el canal, tipo ni categoría.',
+                            requiereCategoria
+                                ? 'No se puede cambiar el canal, tipo ni categoría.'
+                                : 'No se puede cambiar el canal ni el tipo.',
                             style: TextStyle(
                               fontSize: 13,
                               color: context.colors.ugBlue,
@@ -994,31 +863,41 @@ class _CrearPublicacionScreenState
                   ),
                   const SizedBox(height: 16),
                 ],
-                const _Etiqueta('Tipo de publicación'),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  child: Row(
-                    children: [
-                      for (final t in tiposFiltrados) ...[
-                        _ChipTipo(
-                          estilo: estiloTipo(context, t.codigo),
-                          nombre: t.nombre,
-                          seleccionado: t.id == _tipoId,
-                          onTap: _editando
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _tipoId = t.id;
-                                    _mostrarErrorTipo = false;
-                                    if (t.codigo != 'venta') _disponible = true;
-                                  });
-                                },
-                        ),
-                        const SizedBox(width: 8),
+                const _Etiqueta('¿Qué quieres publicar?'),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final ancho = (constraints.maxWidth - 10) / 2;
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        for (final t in tiposFiltrados)
+                          SizedBox(
+                            width: ancho,
+                            child: _ChipTipo(
+                              estilo: estiloTipo(context, t.codigo),
+                              nombre: t.nombre,
+                              descripcion: _descripcionTipo(t.codigo),
+                              seleccionado: t.id == _tipoId,
+                              onTap: _editando
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _tipoId = t.id;
+                                        _mostrarErrorTipo = false;
+                                        if (!_tipoUsaCategoria(t.codigo)) {
+                                          _categoriaId = null;
+                                        }
+                                        if (t.codigo != 'venta') {
+                                          _disponible = true;
+                                        }
+                                      });
+                                    },
+                            ),
+                          ),
                       ],
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 if (_mostrarErrorTipo) ...[
                   const SizedBox(height: 6),
@@ -1028,10 +907,8 @@ class _CrearPublicacionScreenState
                   ),
                 ],
                 const SizedBox(height: 16),
-                _TarjetaIA(onAccion: _proximamente),
-                const SizedBox(height: 16),
                 _Seccion(
-                  titulo: 'Clasificación',
+                  titulo: 'Dónde y cómo se clasifica',
                   icono: Icons.tune,
                   children: [
                     const _Etiqueta('Canal de destino'),
@@ -1059,16 +936,16 @@ class _CrearPublicacionScreenState
                       validator: (v) =>
                           v == null ? 'Selecciona un canal' : null,
                     ),
-                    const SizedBox(height: 12),
-                    const _Etiqueta('Categoría'),
-                    DropdownButtonFormField<int>(
-                      initialValue: _categoriaId,
-                      decoration: const InputDecoration(
-                        hintText: 'Selecciona una categoría',
-                        prefixIcon: Icon(Icons.label_outline),
-                      ),
-                      items: categoriasAsync.when(
-                        data: (cats) => cats
+                    if (requiereCategoria) ...[
+                      const SizedBox(height: 12),
+                      const _Etiqueta('Categoría'),
+                      DropdownButtonFormField<int>(
+                        initialValue: _categoriaId,
+                        decoration: const InputDecoration(
+                          hintText: 'Selecciona una categoría',
+                          prefixIcon: Icon(Icons.label_outline),
+                        ),
+                        items: categoriasDisponibles
                             .map(
                               (c) => DropdownMenuItem(
                                 value: c.id,
@@ -1076,20 +953,42 @@ class _CrearPublicacionScreenState
                               ),
                             )
                             .toList(),
-                        loading: () => [],
-                        error: (_, _) => [],
+                        onChanged: _editando
+                            ? null
+                            : (v) => setState(() => _categoriaId = v),
+                        validator: (v) =>
+                            v == null ? 'Selecciona una categoría' : null,
                       ),
-                      onChanged: _editando
-                          ? null
-                          : (v) => setState(() => _categoriaId = v),
-                      validator: (v) =>
-                          v == null ? 'Selecciona una categoría' : null,
-                    ),
+                    ] else if (tipoSel != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 17,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 7),
+                          Expanded(
+                            child: Text(
+                              'Este tipo no necesita categoría: el tipo ya '
+                              'describe la publicación.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.35,
+                                color: context.colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 16),
                 _Seccion(
-                  titulo: 'Tu publicación',
+                  titulo: 'Contenido',
                   icono: Icons.edit_note,
                   children: [
                     ValueListenableBuilder<TextEditingValue>(
@@ -1134,14 +1033,8 @@ class _CrearPublicacionScreenState
                           ? 'Escribe el contenido de tu publicación'
                           : null,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _Seccion(
-                  titulo: 'Adjuntar al contenido',
-                  icono: Icons.attach_file,
-                  children: [
-                    const _Etiqueta('Imágenes (máx. 3)'),
+                    const SizedBox(height: 14),
+                    const _Etiqueta('Fotos (opcional, máx. 3)'),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -1161,7 +1054,7 @@ class _CrearPublicacionScreenState
                         if (puedeAnadir)
                           _BotonAdjuntar(
                             icono: Icons.add_photo_alternate_outlined,
-                            texto: 'Foto',
+                            texto: 'Añadir foto',
                             color: context.colors.ugBlue,
                             onTap: _elegirImagenes,
                           ),
@@ -1182,11 +1075,16 @@ class _CrearPublicacionScreenState
                           labelText: 'Precio (COP)',
                           prefixIcon: Icon(Icons.attach_money_outlined),
                         ),
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Ingresa un valor'
-                            : (double.tryParse(v.replaceAll(',', '.')) == null
-                                  ? 'Valor inválido'
-                                  : null),
+                        validator: (v) {
+                          final texto = v?.trim() ?? '';
+                          if (texto.isEmpty) return 'Ingresa un valor';
+                          final valor = double.tryParse(
+                            texto.replaceAll(',', '.'),
+                          );
+                          return valor == null || valor <= 0
+                              ? 'Ingresa un valor mayor que 0'
+                              : null;
+                        },
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -1250,6 +1148,16 @@ class _CrearPublicacionScreenState
                           labelText: 'Recompensa (COP, opcional)',
                           prefixIcon: Icon(Icons.attach_money_outlined),
                         ),
+                        validator: (v) {
+                          final texto = v?.trim() ?? '';
+                          if (texto.isEmpty) return null;
+                          final valor = double.tryParse(
+                            texto.replaceAll(',', '.'),
+                          );
+                          return valor == null || valor < 0
+                              ? 'Recompensa inválida'
+                              : null;
+                        },
                       ),
                     ],
                   ),
@@ -1278,16 +1186,19 @@ class _CrearPublicacionScreenState
                             ? 'Ingresa el lugar'
                             : null,
                       ),
-                      const SizedBox(height: 12),
-                      Material(
-                        type: MaterialType.transparency,
-                        child: SwitchListTile.adaptive(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('Entregado'),
-                          value: _entregado,
-                          onChanged: (v) => setState(() => _entregado = v),
+                      if (_editando) ...[
+                        const SizedBox(height: 12),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Entregado'),
+                            value: _entregado,
+                            onChanged: (v) => setState(() => _entregado = v),
+                          ),
                         ),
-                      ),                    ],
+                      ],
+                    ],
                   ),
                 ],
                 if (tipoSel?.codigo == 'evento') ...[
@@ -1341,8 +1252,10 @@ class _CrearPublicacionScreenState
                           final enlace = v?.trim() ?? '';
                           if (enlace.isEmpty) return null;
                           final uri = Uri.tryParse(enlace);
-                          if (uri == null || !uri.isAbsolute) {
-                            return 'Enlace inválido';
+                          if (uri == null ||
+                              (uri.scheme != 'http' && uri.scheme != 'https') ||
+                              uri.host.isEmpty) {
+                            return 'Usa un enlace http(s) válido';
                           }
                           return null;
                         },
@@ -1503,33 +1416,13 @@ class _CrearPublicacionScreenState
               top: BorderSide(color: context.colors.ugBlue.withValues(alpha: 0.12)),
             ),
           ),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: 'Añadir foto',
-                onPressed: puedeAnadir ? _elegirImagenes : null,
-                icon: const Icon(Icons.image_outlined),
-                color: context.colors.ugBlue,
-              ),
-              IconButton(
-                tooltip: 'Sugerir etiquetas (próximamente)',
-                onPressed: _proximamente,
-                icon: const Icon(Icons.sell_outlined),
-                color: context.colors.ugBlue,
-              ),
-              IconButton(
-                tooltip: 'Copiloto IA (próximamente)',
-                onPressed: _proximamente,
-                icon: const Icon(Icons.auto_awesome),
-                color: context.colors.ugOcre,
-              ),
-              const Spacer(),
-              _BotonPublicar(
-                etiqueta: _editando ? 'Guardar cambios' : 'Publicar ahora',
-                enviando: _enviando,
-                onPressed: _publicar,
-              ),
-            ],
+          child: SizedBox(
+            width: double.infinity,
+            child: _BotonPublicar(
+              etiqueta: _editando ? 'Guardar cambios' : 'Publicar ahora',
+              enviando: _enviando,
+              onPressed: _publicar,
+            ),
           ),
         ),
       ),

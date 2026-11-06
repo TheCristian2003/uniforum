@@ -5,6 +5,7 @@ import '../../../../core/utils/estilo_publicacion.dart';
 import '../../../../core/utils/fecha_relativa.dart';
 import '../../../../data/models/publicacion.dart';
 import '../../../publicaciones/presentation/widgets/imagenes_adjuntas.dart';
+import 'control_voto.dart';
 
 /// Publicación a ancho completo, separada por una línea sutil como en un feed
 /// social. Se reutiliza en Inicio y en el detalle de un canal.
@@ -14,6 +15,9 @@ class PublicacionCard extends StatelessWidget {
     required this.publicacion,
     this.onTap,
     this.onTapAutor,
+    this.miVoto,
+    this.onVotar,
+    this.habilitado = true,
   });
 
   final Publicacion publicacion;
@@ -21,6 +25,15 @@ class PublicacionCard extends StatelessWidget {
 
   /// Abre el perfil del autor. Solo aplica cuando la publicación no es anónima.
   final VoidCallback? onTapAutor;
+
+  /// Voto actual del usuario en esta publicación, si ya votó.
+  final int? miVoto;
+
+  /// Si se proporciona, la tarjeta muestra los botones de voto activos.
+  final ValueChanged<int>? onVotar;
+
+  /// `false` para publicaciones propias o mientras se procesa una acción.
+  final bool habilitado;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +105,15 @@ class PublicacionCard extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 10),
                   child: Row(
                     children: [
-                      _PillVotos(valor: publicacion.puntaje),
+                      if (onVotar != null)
+                        ControlVoto(
+                          puntaje: publicacion.puntaje,
+                          miVoto: miVoto,
+                          habilitado: habilitado,
+                          onVotar: onVotar!,
+                        )
+                      else
+                        _PillVotos(valor: publicacion.puntaje),
                       const Spacer(),
                       _AccionComentario(valor: publicacion.comentariosCount),
                     ],

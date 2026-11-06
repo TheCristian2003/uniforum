@@ -718,8 +718,11 @@ class _TarjetaPublicacion extends StatelessWidget {
     final nivel = publicacion.autorPuntos != null
         ? nivelDesdePuntos(publicacion.autorPuntos!).numero
         : null;
+    final usaCategoria =
+        publicacion.tipoCodigo == 'discusion' ||
+        publicacion.tipoCodigo == 'aviso';
     final textoEtiqueta = [
-      if (publicacion.categoriaNombre != null)
+      if (usaCategoria && publicacion.categoriaNombre != null)
         publicacion.categoriaNombre!.toUpperCase(),
       if (publicacion.tipoNombre != null) publicacion.tipoNombre!,
     ].join(' • ');
@@ -808,7 +811,12 @@ class _TarjetaPublicacion extends StatelessWidget {
                   const SizedBox(height: 12),
                   _EtiquetaCategoria(
                     texto: textoEtiqueta,
-                    color: colorCategoria(context, publicacion.categoriaCodigo),
+                    color: usaCategoria
+                        ? colorCategoria(
+                            context,
+                            publicacion.categoriaCodigo,
+                          )
+                        : tipo.color,
                   ),
                 ],
                 if (publicacion.titulo != null) ...[

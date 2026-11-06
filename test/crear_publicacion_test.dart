@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uniforum/core/providers.dart';
@@ -21,6 +21,11 @@ void main() {
   );
   const aviso = CatalogoItem(id: 2, codigo: 'aviso', nombre: 'Aviso');
   const venta = CatalogoItem(id: 3, codigo: 'venta', nombre: 'Venta');
+  const encontrado = CatalogoItem(
+    id: 4,
+    codigo: 'encontrado',
+    nombre: 'Encontrado',
+  );
   const general = CatalogoItem(id: 10, codigo: 'general', nombre: 'General');
 
   Widget app({Publicacion? publicacion}) {
@@ -29,7 +34,9 @@ void main() {
         currentUserProvider.overrideWithValue(null),
         canalesProvider.overrideWith((ref) async => [canal]),
         catalogoProvider.overrideWith((ref, grupo) async {
-          if (grupo == 'tipo_publicacion') return [discusion, aviso, venta];
+          if (grupo == 'tipo_publicacion') {
+            return [discusion, aviso, venta, encontrado];
+          }
           if (grupo == 'categoria_publicacion') return [general];
           return <CatalogoItem>[];
         }),
@@ -43,12 +50,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nueva publicación'), findsOneWidget);
-    expect(find.text('TIPO DE PUBLICACIÓN'), findsOneWidget);
+    expect(find.text('¿QUÉ QUIERES PUBLICAR?'), findsOneWidget);
     expect(find.text('CANAL DE DESTINO'), findsOneWidget);
-    expect(find.text('CATEGORÍA'), findsOneWidget);
     expect(find.text('TÍTULO (OPCIONAL)'), findsOneWidget);
-    expect(find.text('CONTENIDO'), findsOneWidget);
-    expect(find.text('Publicar'), findsOneWidget);
+    expect(find.text('Contenido'), findsOneWidget);
+    expect(find.text('Publicar ahora'), findsOneWidget);
+  });
+
+  testWidgets('la categoría solo aparece para discusión y aviso',
+      (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('CATEGORÍA'), findsNothing);
+
+    await tester.tap(find.text('Discusión'));
+    await tester.pumpAndSettle();
+    expect(find.text('CATEGORÍA'), findsOneWidget);
+
+    await tester.tap(find.text('Venta'));
+    await tester.pumpAndSettle();
+    expect(find.text('CATEGORÍA'), findsNothing);
+    expect(
+      find.textContaining('Este tipo no necesita categoría'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('un hallazgo no se marca como entregado al crear',
+      (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Encontrado'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fecha del hallazgo'), findsOneWidget);
+    expect(find.text('Entregado'), findsNothing);
   });
 
   testWidgets('valida que el contenido no esté vacío', (tester) async {
@@ -58,9 +96,9 @@ void main() {
     await tester.tap(find.text('Discusión'));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Publicar'));
+    await tester.ensureVisible(find.text('Publicar ahora'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Publicar'));
+    await tester.tap(find.text('Publicar ahora'));
     await tester.pump();
 
     expect(find.text('Escribe el contenido de tu publicación'), findsOneWidget);
@@ -80,9 +118,9 @@ void main() {
     // En modo creación el estado se asigna automáticamente, no se pregunta.
     expect(find.text('Disponible'), findsNothing);
 
-    await tester.ensureVisible(find.text('Publicar'));
+    await tester.ensureVisible(find.text('Publicar ahora'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Publicar'));
+    await tester.tap(find.text('Publicar ahora'));
     await tester.pump();
 
     expect(find.text('Ingresa un valor'), findsOneWidget);
@@ -113,7 +151,7 @@ void main() {
 
     expect(find.text('Editar publicación'), findsOneWidget);
     expect(
-      find.text('No se puede cambiar el canal, tipo ni categoría.'),
+      find.text('No se puede cambiar el canal ni el tipo.'),
       findsOneWidget,
     );
     expect(find.text('Precio (COP)'), findsOneWidget);
